@@ -20,19 +20,11 @@ pub mod v2_1;
 
 use stacks_common::types::StacksEpochId;
 
-use super::errors::{
-    check_argument_count, check_arguments_at_least, check_arguments_at_most, CheckError,
-    CheckErrors, CheckResult,
-};
+use super::errors::{CheckErrors, CheckResult};
 pub use super::types::{AnalysisPass, ContractAnalysis};
 use super::AnalysisDatabase;
-use crate::vm::costs::{analysis_typecheck_cost, CostTracker, LimitedCostTracker};
-use crate::vm::types::signatures::{
-    CallableSubtype, FunctionArgSignature, FunctionReturnsSignature,
-};
-use crate::vm::types::{
-    FixedFunction, FunctionType, PrincipalData, SequenceSubtype, StringSubtype, TypeSignature,
-};
+use crate::vm::costs::CostTracker;
+use crate::vm::types::{FunctionType, TypeSignature};
 use crate::vm::{ClarityVersion, Value};
 
 impl FunctionType {

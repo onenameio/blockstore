@@ -143,9 +143,7 @@ pub trait NeighborComms {
         if network.is_registered(&nk) {
             // already connected
             self.remove_connecting(network, &nk);
-            return self
-                .neighbor_handshake(network, &nk)
-                .map(|handle| Some(handle));
+            return self.neighbor_handshake(network, &nk).map(Some);
         }
 
         if let Some(event_id) = self.get_connecting(network, &nk) {
@@ -199,9 +197,7 @@ pub trait NeighborComms {
                     &alt_nk
                 );
                 self.remove_connecting(network, &alt_nk);
-                return self
-                    .neighbor_handshake(network, &alt_nk)
-                    .map(|handle| Some(handle));
+                return self.neighbor_handshake(network, &alt_nk).map(Some);
             }
             Err(e) => {
                 info!(
@@ -245,9 +241,7 @@ pub trait NeighborComms {
                                network.get_local_peer(), &nk, &event_id, &handshake_nk, &neighbor_pubkh, &nk);
 
                         self.remove_connecting(network, &nk);
-                        return self
-                            .neighbor_handshake(network, &nk)
-                            .map(|handle| Some(handle));
+                        return self.neighbor_handshake(network, &nk).map(Some);
                     }
                     test_debug!(
                         "{:?}: Already connected to {:?} on event {} (address: {:?})",

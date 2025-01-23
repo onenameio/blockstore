@@ -647,7 +647,7 @@ fn replay_mock_mined_block(db_path: &str, block: AssembledAnchorBlock, conf: Opt
     .unwrap();
     let sort_tx = sortdb.tx_begin_at_tip();
 
-    let (mut chainstate_tx, clarity_instance) = chainstate
+    let (chainstate_tx, clarity_instance) = chainstate
         .chainstate_tx_begin()
         .expect("Failed to start chainstate tx");
 
@@ -662,7 +662,7 @@ fn replay_mock_mined_block(db_path: &str, block: AssembledAnchorBlock, conf: Opt
         .expect("u64 overflow");
 
     let Some(parent_header_info) = StacksChainState::get_anchored_block_header_info(
-        &mut chainstate_tx,
+        &chainstate_tx,
         &block.parent_consensus_hash,
         &block.anchored_block.header.parent_block,
     )

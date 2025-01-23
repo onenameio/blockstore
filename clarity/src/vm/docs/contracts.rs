@@ -86,7 +86,7 @@ fn doc_execute(program: &str) -> Result<Option<Value>, vm::Error> {
         DOCS_GENERATION_EPOCH,
     );
     global_context.execute(|g| {
-        let parsed = vm::ast::build_ast_with_rules(
+        let parsed = build_ast_with_rules(
             &contract_id,
             program,
             &mut (),

@@ -17,7 +17,6 @@
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::analysis::errors::CheckErrors;
-use crate::vm::analysis::AnalysisDatabase;
 use crate::vm::ast::parse;
 use crate::vm::database::MemoryBackingStore;
 use crate::vm::tooling::mem_type_check;
@@ -151,8 +150,6 @@ fn test_names_tokens_contracts() {
 
 #[test]
 fn test_bad_asset_usage() {
-    use crate::vm::analysis::type_check;
-
     let bad_scripts = [
         "(ft-get-balance stackoos tx-sender)",
         "(ft-get-balance u1234 tx-sender)",

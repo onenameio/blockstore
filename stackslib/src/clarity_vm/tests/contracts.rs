@@ -1322,13 +1322,12 @@ fn test_block_heights_across_versions_traits_3_from_2() {
             (contract-call? get-trait get-int)
         )
         "#;
-    let contract_e3c3 = format!(
-        r#"
+    let contract_e3c3 = r#"
         (define-public (get-int)
             (ok (+ stacks-block-height tenure-height))
         )
         "#
-    );
+    .to_string();
 
     sim.execute_next_block(|_env| {});
 
@@ -1465,14 +1464,13 @@ fn test_block_heights_across_versions_traits_2_from_3() {
             (ok (+ stacks-block-height (var-get tenure-height)))
         )
         "#;
-    let contract_e3c3 = format!(
-        r#"
+    let contract_e3c3 = r#"
         (define-trait getter ((get-int () (response uint uint))))
         (define-public (get-it (get-trait <getter>))
             (contract-call? get-trait get-int)
         )
         "#
-    );
+    .to_string();
 
     sim.execute_next_block(|_env| {});
 

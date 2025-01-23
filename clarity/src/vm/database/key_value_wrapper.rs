@@ -26,10 +26,8 @@ use super::{ClarityBackingStore, ClarityDeserializable};
 use crate::vm::database::clarity_store::make_contract_hash_key;
 use crate::vm::errors::{InterpreterError, InterpreterResult};
 use crate::vm::types::serialization::SerializationError;
-use crate::vm::types::{
-    QualifiedContractIdentifier, SequenceData, SequenceSubtype, TupleData, TypeSignature,
-};
-use crate::vm::{StacksEpoch, Value};
+use crate::vm::types::{QualifiedContractIdentifier, TypeSignature};
+use crate::vm::Value;
 
 #[cfg(feature = "rollback_value_check")]
 type RollbackValueCheck = String;

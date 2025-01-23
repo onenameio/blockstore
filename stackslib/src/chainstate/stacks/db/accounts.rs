@@ -79,9 +79,8 @@ impl FromRow<MinerPaymentSchedule> for MinerPaymentSchedule {
         let stacks_block_height = u64::from_column(row, "stacks_block_height")?;
         let vtxindex: u32 = row.get_unwrap("vtxindex");
 
-        let schedule_type: HeaderTypeNames = row
-            .get("schedule_type")
-            .unwrap_or_else(|_e| HeaderTypeNames::Epoch2);
+        let schedule_type: HeaderTypeNames =
+            row.get("schedule_type").unwrap_or(HeaderTypeNames::Epoch2);
 
         let coinbase = coinbase_text
             .parse::<u128>()
@@ -654,7 +653,7 @@ impl StacksChainState {
     ) -> Result<Vec<MinerReward>, Error> {
         let sql = "SELECT * FROM matured_rewards WHERE parent_index_block_hash = ?1 AND child_index_block_hash = ?2 AND vtxindex = 0";
         let args = params![parent_block_id.0, child_block_id.0];
-        let ret: Vec<MinerReward> = query_rows(conn, sql, args).map_err(|e| Error::DBError(e))?;
+        let ret: Vec<MinerReward> = query_rows(conn, sql, args).map_err(Error::DBError)?;
         Ok(ret)
     }
 

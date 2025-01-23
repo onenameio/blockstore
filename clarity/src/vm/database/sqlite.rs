@@ -15,10 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
-use rusqlite::{
-    params, Connection, Error as SqliteError, ErrorCode as SqliteErrorCode, OptionalExtension, Row,
-    Savepoint,
-};
+use rusqlite::{params, Connection, OptionalExtension};
 use stacks_common::types::chainstate::{BlockHeaderHash, StacksBlockId, TrieHash};
 use stacks_common::types::sqlite::NO_PARAMS;
 use stacks_common::util::db::tx_busy_handler;
@@ -30,10 +27,9 @@ use super::{
     NULL_BURN_STATE_DB, NULL_HEADER_DB,
 };
 use crate::vm::analysis::{AnalysisDatabase, CheckErrors};
-use crate::vm::contracts::Contract;
 use crate::vm::costs::ExecutionCost;
 use crate::vm::errors::{
-    Error, IncomparableError, InterpreterError, InterpreterResult as Result, RuntimeErrorType,
+    IncomparableError, InterpreterError, InterpreterResult as Result, RuntimeErrorType,
 };
 use crate::vm::types::QualifiedContractIdentifier;
 

@@ -17,13 +17,11 @@
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::ast::ContractAST;
-use crate::vm::callables::CallableType;
-use crate::vm::contexts::{ContractContext, Environment, GlobalContext, LocalContext};
+use crate::vm::contexts::{ContractContext, GlobalContext};
 use crate::vm::errors::InterpreterResult as Result;
-use crate::vm::representations::SymbolicExpression;
+use crate::vm::eval_all;
 use crate::vm::types::{PrincipalData, QualifiedContractIdentifier};
 use crate::vm::version::ClarityVersion;
-use crate::vm::{apply, eval_all, Value};
 
 #[derive(Serialize, Deserialize)]
 pub struct Contract {

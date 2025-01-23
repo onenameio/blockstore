@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fmt;
 use std::mem::replace;
 
 use hashbrown::{HashMap, HashSet};
 use serde::Serialize;
 use serde_json::json;
-use stacks_common::consts::CHAIN_ID_TESTNET;
 use stacks_common::types::chainstate::StacksBlockId;
 use stacks_common::types::StacksEpochId;
 
@@ -30,10 +29,7 @@ use crate::vm::ast::{ASTRules, ContractAST};
 use crate::vm::callables::{DefinedFunction, FunctionIdentifier};
 use crate::vm::contracts::Contract;
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{
-    cost_functions, runtime_cost, ClarityCostFunctionReference, CostErrors, CostTracker,
-    ExecutionCost, LimitedCostTracker,
-};
+use crate::vm::costs::{runtime_cost, CostErrors, CostTracker, ExecutionCost, LimitedCostTracker};
 use crate::vm::database::{
     ClarityDatabase, DataMapMetadata, DataVariableMetadata, FungibleTokenMetadata,
     NonFungibleTokenMetadata,
@@ -42,11 +38,11 @@ use crate::vm::errors::{
     CheckErrors, InterpreterError, InterpreterResult as Result, RuntimeErrorType,
 };
 use crate::vm::events::*;
-use crate::vm::representations::{ClarityName, ContractName, SymbolicExpression};
+use crate::vm::representations::{ClarityName, SymbolicExpression};
 use crate::vm::types::signatures::FunctionSignature;
 use crate::vm::types::{
-    AssetIdentifier, BuffData, CallableData, OptionalData, PrincipalData,
-    QualifiedContractIdentifier, TraitIdentifier, TypeSignature, Value,
+    AssetIdentifier, BuffData, CallableData, PrincipalData, QualifiedContractIdentifier,
+    TraitIdentifier, TypeSignature, Value,
 };
 use crate::vm::version::ClarityVersion;
 use crate::vm::{ast, eval, is_reserved, stx_transfer_consolidated};
@@ -496,7 +492,7 @@ impl<'a, 'hooks> OwnedEnvironment<'a, 'hooks> {
         OwnedEnvironment {
             context: GlobalContext::new(
                 false,
-                CHAIN_ID_TESTNET,
+                stacks_common::consts::CHAIN_ID_TESTNET,
                 database,
                 LimitedCostTracker::new_free(),
                 epoch,
@@ -519,7 +515,7 @@ impl<'a, 'hooks> OwnedEnvironment<'a, 'hooks> {
         OwnedEnvironment {
             context: GlobalContext::new(
                 false,
-                CHAIN_ID_TESTNET,
+                stacks_common::consts::CHAIN_ID_TESTNET,
                 database,
                 LimitedCostTracker::new_free(),
                 epoch,
@@ -1974,11 +1970,9 @@ mod test {
 
     use super::*;
     use crate::vm::callables::DefineType;
-    use crate::vm::tests::{
-        test_epochs, tl_env_factory, MemoryEnvironmentGenerator, TopLevelMemoryEnvironmentGenerator,
-    };
+    use crate::vm::tests::{test_epochs, tl_env_factory, TopLevelMemoryEnvironmentGenerator};
     use crate::vm::types::signatures::CallableSubtype;
-    use crate::vm::types::{FixedFunction, FunctionArg, FunctionType, StandardPrincipalData};
+    use crate::vm::types::StandardPrincipalData;
 
     #[test]
     fn test_asset_map_abort() {

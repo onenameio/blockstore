@@ -24,7 +24,7 @@ use crate::vm::ast::definition_sorter::DefinitionSorter;
 use crate::vm::ast::errors::{ParseErrors, ParseResult};
 use crate::vm::ast::expression_identifier::ExpressionIdentifier;
 use crate::vm::ast::parser;
-use crate::vm::ast::types::{BuildASTPass, ContractAST};
+use crate::vm::ast::types::ContractAST;
 use crate::vm::types::QualifiedContractIdentifier;
 use crate::vm::ClarityVersion;
 

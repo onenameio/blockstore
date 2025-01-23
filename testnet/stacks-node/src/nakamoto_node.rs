@@ -23,6 +23,7 @@ use stacks::burnchains::{BurnchainSigner, Txid};
 use stacks::chainstate::burn::db::sortdb::SortitionDB;
 use stacks::chainstate::burn::BlockSnapshot;
 use stacks::chainstate::stacks::Error as ChainstateError;
+use stacks::libstackerdb::StackerDBChunkAckData;
 use stacks::monitoring;
 use stacks::monitoring::update_active_miners_count_gauge;
 use stacks::net::atlas::AtlasConfig;
@@ -130,6 +131,9 @@ pub enum Error {
     /// An error occurred while operating as the signing coordinator
     #[error("An error occurred while operating as the signing coordinator: {0}")]
     SigningCoordinatorFailure(String),
+    /// An error occurred on StackerDB post
+    #[error("An error occurred while uploading data to StackerDB: {0}")]
+    StackerDBUploadError(StackerDBChunkAckData),
     // The thread that we tried to send to has closed
     #[error("The thread that we tried to send to has closed")]
     ChannelClosed,

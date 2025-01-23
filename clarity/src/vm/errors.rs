@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::error::Error as ErrorTrait;
 use std::{error, fmt};
 
 #[cfg(feature = "canonical")]
@@ -29,7 +28,7 @@ pub use crate::vm::analysis::errors::{
 use crate::vm::ast::errors::ParseError;
 use crate::vm::contexts::StackTrace;
 use crate::vm::costs::CostErrors;
-use crate::vm::types::{TypeSignature, Value};
+use crate::vm::types::Value;
 
 #[derive(Debug)]
 pub struct IncomparableError<T> {
@@ -236,7 +235,6 @@ impl From<ShortReturnType> for Value {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::vm::execute;
 
     #[test]
     #[cfg(feature = "developer-mode")]
@@ -247,7 +245,7 @@ mod test {
 _native_:native_div
 ";
 
-        assert_eq!(format!("{}", execute(t).unwrap_err()), expected);
+        assert_eq!(format!("{}", crate::vm::execute(t).unwrap_err()), expected);
     }
 
     #[test]

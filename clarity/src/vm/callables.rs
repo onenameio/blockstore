@@ -26,14 +26,12 @@ use super::ClarityVersion;
 use crate::vm::analysis::errors::CheckErrors;
 use crate::vm::contexts::ContractContext;
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost};
+use crate::vm::costs::runtime_cost;
 use crate::vm::errors::{check_argument_count, Error, InterpreterResult as Result};
-use crate::vm::representations::{ClarityName, Span, SymbolicExpression};
-use crate::vm::types::Value::UInt;
+use crate::vm::representations::{ClarityName, SymbolicExpression};
 use crate::vm::types::{
-    CallableData, FunctionType, ListData, ListTypeData, OptionalData, PrincipalData,
-    QualifiedContractIdentifier, ResponseData, SequenceData, SequenceSubtype, TraitIdentifier,
-    TupleData, TupleTypeSignature, TypeSignature,
+    CallableData, ListData, ListTypeData, OptionalData, PrincipalData, ResponseData, SequenceData,
+    SequenceSubtype, TraitIdentifier, TupleData, TypeSignature,
 };
 use crate::vm::{eval, Environment, LocalContext, Value};
 
@@ -377,7 +375,7 @@ impl DefinedFunction {
     }
 
     #[cfg(feature = "developer-mode")]
-    pub fn get_span(&self) -> Span {
+    pub fn get_span(&self) -> crate::vm::representations::Span {
         self.body.span.clone()
     }
 }
@@ -512,7 +510,9 @@ fn clarity2_implicit_cast(type_sig: &TypeSignature, value: &Value) -> Result<Val
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::vm::types::StandardPrincipalData;
+    use crate::vm::types::{
+        QualifiedContractIdentifier, StandardPrincipalData, TupleTypeSignature,
+    };
 
     #[test]
     fn test_implicit_cast() {

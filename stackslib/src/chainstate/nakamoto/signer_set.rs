@@ -441,7 +441,7 @@ impl NakamotoSigners {
                     coinbase_height,
                 )
             })
-            .map(|calculation| Some(calculation))
+            .map(Some)
     }
 
     /// Make the contract name for a signers DB contract

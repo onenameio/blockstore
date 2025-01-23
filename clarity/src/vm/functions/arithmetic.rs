@@ -23,14 +23,12 @@ use crate::vm::costs::runtime_cost;
 use crate::vm::errors::{
     check_argument_count, CheckErrors, InterpreterError, InterpreterResult, RuntimeErrorType,
 };
-use crate::vm::representations::{SymbolicExpression, SymbolicExpressionType};
-use crate::vm::types::signatures::ListTypeData;
-use crate::vm::types::TypeSignature::BoolType;
+use crate::vm::representations::SymbolicExpression;
 use crate::vm::types::{
-    ASCIIData, BuffData, CharType, ListData, SequenceData, TypeSignature, UTF8Data, Value,
+    ASCIIData, BuffData, CharType, SequenceData, TypeSignature, UTF8Data, Value,
 };
 use crate::vm::version::ClarityVersion;
-use crate::vm::{apply, eval, lookup_function, CallableType, Environment, LocalContext};
+use crate::vm::{eval, Environment, LocalContext};
 
 struct U128Ops();
 struct I128Ops();

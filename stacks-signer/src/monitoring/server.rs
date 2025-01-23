@@ -24,11 +24,11 @@ use slog::{slog_debug, slog_error, slog_info, slog_warn};
 use stacks_common::{debug, error, info, warn};
 use tiny_http::{Response as HttpResponse, Server as HttpServer};
 
-use super::{update_reward_cycle, update_signer_stx_balance};
+use super::actions::{update_reward_cycle, update_signer_stx_balance};
 use crate::client::{ClientError, StacksClient};
 use crate::config::{GlobalConfig, Network};
+use crate::monitoring::actions::{update_signer_nonce, update_stacks_tip_height};
 use crate::monitoring::prometheus::gather_metrics_string;
-use crate::monitoring::{update_signer_nonce, update_stacks_tip_height};
 
 #[derive(thiserror::Error, Debug)]
 /// Monitoring server errors

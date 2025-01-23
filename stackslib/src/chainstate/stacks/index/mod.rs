@@ -333,10 +333,7 @@ impl error::Error for Error {
             Error::IOError(ref e) => Some(e),
             Error::SQLError(ref e) => Some(e),
             Error::RestoreMarfBlockError(ref e) => Some(e),
-            Error::BlockHashMapCorruptionError(ref opt_e) => match opt_e {
-                Some(ref e) => Some(e),
-                None => None,
-            },
+            Error::BlockHashMapCorruptionError(Some(ref e)) => Some(e),
             _ => None,
         }
     }

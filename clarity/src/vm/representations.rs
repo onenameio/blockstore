@@ -15,19 +15,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::borrow::Borrow;
-use std::cmp::Ordering;
 use std::fmt;
 use std::io::{Read, Write};
 use std::ops::Deref;
 
 use lazy_static::lazy_static;
 use regex::Regex;
-use stacks_common::codec::{
-    read_next, read_next_at_most, write_next, Error as codec_error, StacksMessageCodec,
-};
+use stacks_common::codec::{read_next, write_next, Error as codec_error, StacksMessageCodec};
 
 use crate::vm::errors::RuntimeErrorType;
-use crate::vm::types::{QualifiedContractIdentifier, TraitIdentifier, Value};
+use crate::vm::types::{TraitIdentifier, Value};
 
 pub const CONTRACT_MIN_NAME_LENGTH: usize = 1;
 pub const CONTRACT_MAX_NAME_LENGTH: usize = 40;

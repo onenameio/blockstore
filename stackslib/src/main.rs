@@ -1484,7 +1484,7 @@ check if the associated microblocks can be downloaded
                         &burnchain,
                         &sortition_tip.sortition_id,
                         None,
-                        |_| {},
+                        |_, _| {},
                     )
                     .unwrap()
             };
@@ -1981,7 +1981,7 @@ fn analyze_sortition_mev(argv: Vec<String>) {
                 &burnchain,
                 &tip_sort_id,
                 rc_info_opt,
-                |_| (),
+                |_, _| (),
             )
             .unwrap();
 

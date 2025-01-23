@@ -19,9 +19,8 @@ pub mod signatures;
 
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
-use std::{char, cmp, fmt, str};
+use std::{char, fmt, str};
 
-use hashbrown::hash_map::OccupiedEntry;
 use regex::Regex;
 use stacks_common::address::c32;
 use stacks_common::types::chainstate::StacksAddress;
@@ -29,11 +28,9 @@ use stacks_common::types::StacksEpochId;
 use stacks_common::util::hash;
 
 use crate::vm::errors::{
-    CheckErrors, IncomparableError, InterpreterError, InterpreterResult as Result, RuntimeErrorType,
+    CheckErrors, InterpreterError, InterpreterResult as Result, RuntimeErrorType,
 };
-use crate::vm::representations::{
-    ClarityName, ContractName, SymbolicExpression, SymbolicExpressionType,
-};
+use crate::vm::representations::{ClarityName, ContractName, SymbolicExpression};
 pub use crate::vm::types::signatures::{
     parse_name_type_pairs, AssetIdentifier, BufferLength, FixedFunction, FunctionArg,
     FunctionSignature, FunctionType, ListTypeData, SequenceSubtype, StringSubtype,

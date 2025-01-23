@@ -17,11 +17,9 @@
 use super::types::signatures::{FunctionArgSignature, FunctionReturnsSignature};
 use crate::vm::analysis::type_checker::v2_1::natives::SimpleNativeFunction;
 use crate::vm::analysis::type_checker::v2_1::TypedNativeFunction;
-use crate::vm::costs::ExecutionCost;
 use crate::vm::functions::define::DefineFunctions;
 use crate::vm::functions::NativeFunctions;
-use crate::vm::types::signatures::ASCII_40;
-use crate::vm::types::{FixedFunction, FunctionType, SequenceSubtype, StringSubtype, Value};
+use crate::vm::types::{FixedFunction, FunctionType};
 use crate::vm::variables::NativeVariables;
 use crate::vm::ClarityVersion;
 
@@ -2741,13 +2739,12 @@ pub fn make_json_api_reference() -> String {
 
 #[cfg(test)]
 mod test {
-    use stacks_common::address::AddressHashMode;
     use stacks_common::consts::{CHAIN_ID_TESTNET, PEER_VERSION_EPOCH_2_1};
     use stacks_common::types::chainstate::{
         BlockHeaderHash, BurnchainHeaderHash, ConsensusHash, SortitionId, StacksAddress,
         StacksBlockId, VRFSeed,
     };
-    use stacks_common::types::{Address, StacksEpochId};
+    use stacks_common::types::StacksEpochId;
     use stacks_common::util::hash::hex_bytes;
 
     use super::{get_input_type_string, make_all_api_reference, make_json_api_reference};
@@ -2761,12 +2758,11 @@ mod test {
     use crate::vm::docs::get_output_type_string;
     use crate::vm::types::signatures::{FunctionArgSignature, FunctionReturnsSignature, ASCII_40};
     use crate::vm::types::{
-        BufferLength, FunctionType, PrincipalData, SequenceSubtype, StringSubtype, TupleData,
-        TypeSignature,
+        FunctionType, PrincipalData, QualifiedContractIdentifier, TupleData, TypeSignature,
     };
     use crate::vm::{
-        ast, eval_all, execute, ClarityVersion, ContractContext, Error, GlobalContext,
-        LimitedCostTracker, QualifiedContractIdentifier, StacksEpoch, Value,
+        ast, eval_all, execute, ClarityVersion, ContractContext, GlobalContext, LimitedCostTracker,
+        StacksEpoch, Value,
     };
 
     struct DocHeadersDB {}

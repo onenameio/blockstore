@@ -782,7 +782,7 @@ impl PeerDB {
         asn4_entries: &[ASEntry4],
         initial_neighbors: &[Neighbor],
     ) -> Result<PeerDB, db_error> {
-        let conn = Connection::open_in_memory().map_err(|e| db_error::SqliteError(e))?;
+        let conn = Connection::open_in_memory().map_err(db_error::SqliteError)?;
 
         let mut db = PeerDB {
             conn,

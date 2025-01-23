@@ -323,8 +323,10 @@ impl StacksClient {
             block,
             chain_id: self.chain_id,
         };
-        let timer =
-            crate::monitoring::new_rpc_call_timer(&self.block_proposal_path(), &self.http_origin);
+        let timer = crate::monitoring::actions::new_rpc_call_timer(
+            &self.block_proposal_path(),
+            &self.http_origin,
+        );
         let send_request = || {
             self.stacks_node_client
                 .post(self.block_proposal_path())
@@ -399,7 +401,8 @@ impl StacksClient {
             "{}{RPC_TENURE_FORKING_INFO_PATH}/:start/:stop",
             self.http_origin
         );
-        let timer = crate::monitoring::new_rpc_call_timer(&metrics_path, &self.http_origin);
+        let timer =
+            crate::monitoring::actions::new_rpc_call_timer(&metrics_path, &self.http_origin);
         let send_request = || {
             self.stacks_node_client
                 .get(&path)
@@ -420,7 +423,7 @@ impl StacksClient {
     pub fn get_current_and_last_sortition(&self) -> Result<CurrentAndLastSortition, ClientError> {
         debug!("StacksClient: Getting current and prior sortition");
         let path = format!("{}/latest_and_last", self.sortition_info_path());
-        let timer = crate::monitoring::new_rpc_call_timer(&path, &self.http_origin);
+        let timer = crate::monitoring::actions::new_rpc_call_timer(&path, &self.http_origin);
         let send_request = || {
             self.stacks_node_client.get(&path).send().map_err(|e| {
                 warn!("Signer failed to request latest sortition"; "err" => ?e);
@@ -460,8 +463,10 @@ impl StacksClient {
     /// Get the current peer info data from the stacks node
     pub fn get_peer_info(&self) -> Result<PeerInfo, ClientError> {
         debug!("StacksClient: Getting peer info");
-        let timer =
-            crate::monitoring::new_rpc_call_timer(&self.core_info_path(), &self.http_origin);
+        let timer = crate::monitoring::actions::new_rpc_call_timer(
+            &self.core_info_path(),
+            &self.http_origin,
+        );
         let send_request = || {
             self.stacks_node_client
                 .get(self.core_info_path())
@@ -485,7 +490,7 @@ impl StacksClient {
         debug!("StacksClient: Getting reward set signers";
             "reward_cycle" => reward_cycle,
         );
-        let timer = crate::monitoring::new_rpc_call_timer(
+        let timer = crate::monitoring::actions::new_rpc_call_timer(
             &format!("{}/v3/stacker_set/:reward_cycle", self.http_origin),
             &self.http_origin,
         );
@@ -521,7 +526,8 @@ impl StacksClient {
     /// Retrieve the current pox data from the stacks node
     pub fn get_pox_data(&self) -> Result<RPCPoxInfoData, ClientError> {
         debug!("StacksClient: Getting pox data");
-        let timer = crate::monitoring::new_rpc_call_timer(&self.pox_path(), &self.http_origin);
+        let timer =
+            crate::monitoring::actions::new_rpc_call_timer(&self.pox_path(), &self.http_origin);
         let send_request = || {
             self.stacks_node_client
                 .get(self.pox_path())
@@ -572,7 +578,7 @@ impl StacksClient {
             "address" => %address,
         );
         let timer_label = format!("{}/v2/accounts/:principal", self.http_origin);
-        let timer = crate::monitoring::new_rpc_call_timer(&timer_label, &self.http_origin);
+        let timer = crate::monitoring::actions::new_rpc_call_timer(&timer_label, &self.http_origin);
         let send_request = || {
             self.stacks_node_client
                 .get(self.accounts_path(address))
@@ -628,7 +634,7 @@ impl StacksClient {
             "block_height" => %block.header.chain_length,
         );
         let path = format!("{}{}?broadcast=1", self.http_origin, postblock_v3::PATH);
-        let timer = crate::monitoring::new_rpc_call_timer(&path, &self.http_origin);
+        let timer = crate::monitoring::actions::new_rpc_call_timer(&path, &self.http_origin);
         let send_request = || {
             self.stacks_node_client
                 .post(&path)
@@ -678,7 +684,7 @@ impl StacksClient {
             "{}/v2/contracts/call-read/:principal/{contract_name}/{function_name}",
             self.http_origin
         );
-        let timer = crate::monitoring::new_rpc_call_timer(&timer_label, &self.http_origin);
+        let timer = crate::monitoring::actions::new_rpc_call_timer(&timer_label, &self.http_origin);
         let response = self
             .stacks_node_client
             .post(path)

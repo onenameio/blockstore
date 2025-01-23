@@ -855,7 +855,7 @@ impl StacksMessageCodec for StackerDBChunkInvData {
     }
 
     fn consensus_deserialize<R: Read>(fd: &mut R) -> Result<StackerDBChunkInvData, codec_error> {
-        let slot_versions: Vec<u32> = read_next_at_most(fd, stackerdb::STACKERDB_INV_MAX.into())?;
+        let slot_versions: Vec<u32> = read_next_at_most(fd, stackerdb::STACKERDB_INV_MAX)?;
         let num_outbound_replicas: u32 = read_next(fd)?;
         Ok(StackerDBChunkInvData {
             slot_versions,

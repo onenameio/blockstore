@@ -36,10 +36,9 @@ use self::traits_resolver::TraitsResolver;
 use self::types::BuildASTPass;
 pub use self::types::ContractAST;
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost, CostTracker, LimitedCostTracker};
+use crate::vm::costs::{runtime_cost, CostTracker};
 use crate::vm::diagnostic::{Diagnostic, Level};
-use crate::vm::errors::{Error, RuntimeErrorType};
-use crate::vm::representations::{PreSymbolicExpression, SymbolicExpression};
+use crate::vm::representations::PreSymbolicExpression;
 use crate::vm::types::QualifiedContractIdentifier;
 use crate::vm::ClarityVersion;
 
@@ -50,7 +49,7 @@ pub fn parse(
     source_code: &str,
     version: ClarityVersion,
     epoch: StacksEpochId,
-) -> Result<Vec<SymbolicExpression>, Error> {
+) -> Result<Vec<crate::vm::representations::SymbolicExpression>, crate::vm::errors::Error> {
     let ast = build_ast(contract_identifier, source_code, &mut (), version, epoch)?;
     Ok(ast.expressions)
 }

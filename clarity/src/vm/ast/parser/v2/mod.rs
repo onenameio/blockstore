@@ -1,21 +1,16 @@
 pub mod lexer;
 
-use std::num::ParseIntError;
-
 use stacks_common::util::hash::hex_bytes;
 
-use self::lexer::error::LexerError;
 use self::lexer::token::{PlacedToken, Token};
 use self::lexer::Lexer;
 use crate::vm::ast::errors::{ParseError, ParseErrors, ParseResult, PlacedError};
 use crate::vm::ast::stack_depth_checker::AST_CALL_STACK_DEPTH_BUFFER;
 use crate::vm::diagnostic::{DiagnosableError, Diagnostic, Level};
-use crate::vm::representations::{
-    ClarityName, ContractName, PreSymbolicExpression, PreSymbolicExpressionType, Span,
-};
+use crate::vm::representations::{ClarityName, ContractName, PreSymbolicExpression, Span};
 use crate::vm::types::{
-    CharType, PrincipalData, QualifiedContractIdentifier, SequenceData, StandardPrincipalData,
-    TraitIdentifier, UTF8Data, Value,
+    CharType, PrincipalData, QualifiedContractIdentifier, SequenceData, TraitIdentifier, UTF8Data,
+    Value,
 };
 use crate::vm::MAX_CALL_STACK_DEPTH;
 
@@ -1122,11 +1117,11 @@ pub fn parse_collect_diagnostics(
 #[cfg(test)]
 #[cfg(feature = "developer-mode")]
 mod tests {
+    use self::lexer::error::LexerError;
     use super::*;
     use crate::vm::diagnostic::Level;
-    use crate::vm::types::{
-        ASCIIData, CharType, PrincipalData, SequenceData, StandardPrincipalData, UTF8Data,
-    };
+    use crate::vm::representations::PreSymbolicExpressionType;
+    use crate::vm::types::{ASCIIData, CharType, PrincipalData, SequenceData};
 
     #[test]
     fn test_parse_int() {

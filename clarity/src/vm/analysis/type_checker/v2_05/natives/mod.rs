@@ -19,17 +19,13 @@ use stacks_common::types::StacksEpochId;
 use super::{
     check_argument_count, check_arguments_at_least, no_type, TypeChecker, TypeResult, TypingContext,
 };
-use crate::vm::analysis::errors::{CheckError, CheckErrors, CheckResult};
+use crate::vm::analysis::errors::{CheckError, CheckErrors};
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{
-    analysis_typecheck_cost, cost_functions, runtime_cost, CostOverflowingMath,
-};
-use crate::vm::errors::{Error as InterpError, InterpreterError, RuntimeErrorType};
+use crate::vm::costs::{analysis_typecheck_cost, runtime_cost};
 use crate::vm::functions::{handle_binding_list, NativeFunctions};
 use crate::vm::types::{
     BlockInfoProperty, FixedFunction, FunctionArg, FunctionSignature, FunctionType, PrincipalData,
     TupleTypeSignature, TypeSignature, Value, BUFF_20, BUFF_32, BUFF_33, BUFF_64, BUFF_65,
-    MAX_VALUE_SIZE,
 };
 use crate::vm::{ClarityName, ClarityVersion, SymbolicExpression, SymbolicExpressionType};
 

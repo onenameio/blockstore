@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::{no_type, FunctionType, TypeChecker, TypeResult, TypingContext};
-use crate::vm::analysis::errors::{check_argument_count, CheckError, CheckErrors, CheckResult};
+use super::{TypeChecker, TypeResult, TypingContext};
+use crate::vm::analysis::errors::{check_argument_count, CheckErrors};
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost};
+use crate::vm::costs::runtime_cost;
 use crate::vm::representations::SymbolicExpression;
-use crate::vm::types::{BlockInfoProperty, TupleTypeSignature, TypeSignature, MAX_VALUE_SIZE};
+use crate::vm::types::TypeSignature;
 
 pub fn check_special_get_owner(
     checker: &mut TypeChecker,

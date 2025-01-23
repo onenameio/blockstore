@@ -1385,7 +1385,7 @@ impl StacksHttp {
                 )),
             }
         } else {
-            let (message, _) = http.read_payload(&preamble, &mut message_bytes)?;
+            let (message, _) = http.read_payload(&preamble, &message_bytes)?;
             Ok(message)
         }
     }

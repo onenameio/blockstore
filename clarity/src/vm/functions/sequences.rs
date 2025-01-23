@@ -19,16 +19,16 @@ use std::cmp;
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost, CostOverflowingMath};
+use crate::vm::costs::{runtime_cost, CostOverflowingMath};
 use crate::vm::errors::{
     check_argument_count, check_arguments_at_least, CheckErrors, InterpreterResult as Result,
     RuntimeErrorType,
 };
-use crate::vm::representations::{SymbolicExpression, SymbolicExpressionType};
+use crate::vm::representations::SymbolicExpression;
 use crate::vm::types::signatures::ListTypeData;
 use crate::vm::types::TypeSignature::BoolType;
-use crate::vm::types::{CharType, ListData, SequenceData, TypeSignature, Value};
-use crate::vm::{apply, eval, lookup_function, CallableType, Environment, LocalContext};
+use crate::vm::types::{ListData, SequenceData, TypeSignature, Value};
+use crate::vm::{apply, eval, lookup_function, Environment, LocalContext};
 
 pub fn list_cons(
     args: &[SymbolicExpression],

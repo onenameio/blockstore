@@ -2172,7 +2172,7 @@ fn test_make_miners_stackerdb_config() {
             miners
                 .clone()
                 .into_iter()
-                .map(|miner| BlockstackOperationType::LeaderKeyRegister(miner))
+                .map(BlockstackOperationType::LeaderKeyRegister)
                 .collect()
         } else {
             // subsequent ones include block-commits
@@ -3049,7 +3049,7 @@ fn filter_one_transaction_per_signer_duplicate_nonces() {
         txs.clone(),
     );
     let filtered_txs: Vec<_> = filtered_transactions.into_values().collect();
-    txs.sort_by(|a, b| a.txid().cmp(&b.txid()));
+    txs.sort_by_key(|tx| tx.txid());
     assert_eq!(filtered_txs.len(), 1);
     assert!(filtered_txs.contains(&txs.first().expect("failed to get first tx")));
 }

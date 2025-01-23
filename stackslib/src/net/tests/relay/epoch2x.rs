@@ -1512,7 +1512,7 @@ fn make_test_smart_contract_transaction(
             |ref mut sortdb, ref mut miner, ref mut spending_account, ref mut stacks_node| {
                 let mut tx_contract = StacksTransaction::new(
                     TransactionVersion::Testnet,
-                    spending_account.as_transaction_auth().unwrap().into(),
+                    spending_account.as_transaction_auth().unwrap(),
                     TransactionPayload::new_smart_contract(
                         &name.to_string(),
                         &contract.to_string(),

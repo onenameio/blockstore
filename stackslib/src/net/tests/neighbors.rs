@@ -136,9 +136,7 @@ fn test_step_walk_1_neighbor_plain() {
                 .clone()
                 .unwrap(),
             (
-                PeerAddress::from_socketaddr(
-                    &format!("127.0.0.1:1").parse::<SocketAddr>().unwrap()
-                ),
+                PeerAddress::from_socketaddr(&"127.0.0.1:1".parse::<SocketAddr>().unwrap()),
                 peer_1.config.server_port,
             )
         );
@@ -277,8 +275,8 @@ fn test_step_walk_1_neighbor_denied() {
         // peer 1 crawls peer 2, but peer 1 has denied peer 2
         peer_1.add_neighbor(&mut peer_2.to_neighbor(), None, true);
         {
-            let mut tx = peer_1.network.peerdb.tx_begin().unwrap();
-            PeerDB::add_deny_cidr(&mut tx, &PeerAddress::from_ipv4(127, 0, 0, 1), 128).unwrap();
+            let tx = peer_1.network.peerdb.tx_begin().unwrap();
+            PeerDB::add_deny_cidr(&tx, &PeerAddress::from_ipv4(127, 0, 0, 1), 128).unwrap();
             tx.commit().unwrap();
         }
 

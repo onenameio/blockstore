@@ -442,9 +442,8 @@ impl FromRow<StacksHeaderInfo> for StacksHeaderInfo {
             .parse::<u64>()
             .map_err(|_| db_error::ParseError)?;
 
-        let header_type: HeaderTypeNames = row
-            .get("header_type")
-            .unwrap_or_else(|_e| HeaderTypeNames::Epoch2);
+        let header_type: HeaderTypeNames =
+            row.get("header_type").unwrap_or(HeaderTypeNames::Epoch2);
         let stacks_header: StacksBlockHeaderTypes = {
             match header_type {
                 HeaderTypeNames::Epoch2 => StacksBlockHeader::from_row(row)?.into(),
@@ -1202,7 +1201,7 @@ impl StacksChainState {
         test_debug!("Open MARF index at {}", marf_path);
         let mut open_opts = MARFOpenOpts::default();
         open_opts.external_blobs = true;
-        let marf = MARF::from_path(marf_path, open_opts).map_err(|e| db_error::IndexError(e))?;
+        let marf = MARF::from_path(marf_path, open_opts).map_err(db_error::IndexError)?;
         Ok(marf)
     }
 
@@ -1713,7 +1712,7 @@ impl StacksChainState {
             );
 
             StacksChainState::insert_stacks_block_header(
-                &mut tx,
+                &tx,
                 &parent_hash,
                 &first_tip_info,
                 &ExecutionCost::ZERO,

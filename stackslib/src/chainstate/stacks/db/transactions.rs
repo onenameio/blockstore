@@ -212,7 +212,7 @@ impl StacksTransactionReceipt {
                         span.start_line, span.start_column, check_error.diagnostic.message
                     )
                 } else {
-                    format!("{}", check_error.diagnostic.message)
+                    check_error.diagnostic.message.to_string()
                 }
             }
             clarity_error::Parse(ref parse_error) => {
@@ -222,7 +222,7 @@ impl StacksTransactionReceipt {
                         span.start_line, span.start_column, parse_error.diagnostic.message
                     )
                 } else {
-                    format!("{}", parse_error.diagnostic.message)
+                    parse_error.diagnostic.message.to_string()
                 }
             }
             _ => error.to_string(),
@@ -980,14 +980,14 @@ impl StacksChainState {
                 // post-conditions are not allowed for this variant, since they're non-sensical.
                 // Their presence in this variant makes the transaction invalid.
                 if !tx.post_conditions.is_empty() {
-                    let msg = format!("Invalid Stacks transaction: TokenTransfer transactions do not support post-conditions");
+                    let msg = "Invalid Stacks transaction: TokenTransfer transactions do not support post-conditions".to_string();
                     info!("{}", &msg; "txid" => %tx.txid());
 
                     return Err(Error::InvalidStacksTransaction(msg, false));
                 }
 
                 if *addr == origin_account.principal {
-                    let msg = format!("Invalid TokenTransfer: address tried to send to itself");
+                    let msg = "Invalid TokenTransfer: address tried to send to itself".to_string();
                     info!("{}", &msg; "txid" => %tx.txid());
                     return Err(Error::InvalidStacksTransaction(msg, false));
                 }
@@ -1392,7 +1392,7 @@ impl StacksChainState {
                 // post-conditions are not allowed for this variant, since they're non-sensical.
                 // Their presence in this variant makes the transaction invalid.
                 if !tx.post_conditions.is_empty() {
-                    let msg = format!("Invalid Stacks transaction: PoisonMicroblock transactions do not support post-conditions");
+                    let msg = "Invalid Stacks transaction: PoisonMicroblock transactions do not support post-conditions".to_string();
                     info!("{}", &msg);
 
                     return Err(Error::InvalidStacksTransaction(msg, false));
@@ -1424,7 +1424,7 @@ impl StacksChainState {
                 // post-conditions are not allowed for this variant, since they're non-sensical.
                 // Their presence in this variant makes the transaction invalid.
                 if !tx.post_conditions.is_empty() {
-                    let msg = format!("Invalid Stacks transaction: TenureChange transactions do not support post-conditions");
+                    let msg = "Invalid Stacks transaction: TenureChange transactions do not support post-conditions".to_string();
                     info!("{msg}");
 
                     return Err(Error::InvalidStacksTransaction(msg, false));

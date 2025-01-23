@@ -16,10 +16,8 @@
 
 use crate::vm::contexts::{Environment, LocalContext};
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost};
-use crate::vm::errors::{
-    check_argument_count, check_arguments_at_least, CheckErrors, InterpreterResult as Result,
-};
+use crate::vm::costs::runtime_cost;
+use crate::vm::errors::{check_arguments_at_least, CheckErrors, InterpreterResult as Result};
 use crate::vm::eval;
 use crate::vm::representations::SymbolicExpression;
 use crate::vm::types::{TypeSignature, Value};

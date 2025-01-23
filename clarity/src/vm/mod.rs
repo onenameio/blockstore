@@ -59,7 +59,7 @@ use serde_json;
 use stacks_common::types::StacksEpochId;
 
 use self::analysis::ContractAnalysis;
-use self::ast::{ASTRules, ContractAST};
+use self::ast::ContractAST;
 use self::costs::ExecutionCost;
 use self::diagnostic::Diagnostic;
 use crate::vm::callables::CallableType;
@@ -69,8 +69,7 @@ pub use crate::vm::contexts::{
 };
 use crate::vm::costs::cost_functions::ClarityCostFunction;
 use crate::vm::costs::{
-    cost_functions, runtime_cost, CostOverflowingMath, CostTracker, LimitedCostTracker,
-    MemoryConsumer,
+    runtime_cost, CostOverflowingMath, CostTracker, LimitedCostTracker, MemoryConsumer,
 };
 // publish the non-generic StacksEpoch form for use throughout module
 pub use crate::vm::database::clarity_db::StacksEpoch;
@@ -83,9 +82,7 @@ pub use crate::vm::representations::{
     ClarityName, ContractName, SymbolicExpression, SymbolicExpressionType,
 };
 pub use crate::vm::types::Value;
-use crate::vm::types::{
-    PrincipalData, QualifiedContractIdentifier, TraitIdentifier, TypeSignature,
-};
+use crate::vm::types::{PrincipalData, TypeSignature};
 pub use crate::vm::version::ClarityVersion;
 
 pub const MAX_CALL_STACK_DEPTH: usize = 64;
@@ -514,6 +511,7 @@ pub fn execute_with_parameters(
 ) -> Result<Option<Value>> {
     use crate::vm::database::MemoryBackingStore;
     use crate::vm::tests::test_only_mainnet_to_chain_id;
+    use crate::vm::types::QualifiedContractIdentifier;
 
     let contract_id = QualifiedContractIdentifier::transient();
     let mut contract_context = ContractContext::new(contract_id.clone(), clarity_version);
@@ -572,14 +570,13 @@ pub fn execute_v2(program: &str) -> Result<Option<Value>> {
         program,
         ClarityVersion::Clarity2,
         StacksEpochId::Epoch21,
-        ASTRules::PrecheckSize,
+        ast::ASTRules::PrecheckSize,
         false,
     )
 }
 
 #[cfg(test)]
 mod test {
-    use hashbrown::HashMap;
     use stacks_common::consts::CHAIN_ID_TESTNET;
     use stacks_common::types::StacksEpochId;
 
@@ -587,10 +584,9 @@ mod test {
     use crate::vm::callables::{DefineType, DefinedFunction};
     use crate::vm::costs::LimitedCostTracker;
     use crate::vm::database::MemoryBackingStore;
-    use crate::vm::errors::RuntimeErrorType;
     use crate::vm::types::{QualifiedContractIdentifier, TypeSignature};
     use crate::vm::{
-        eval, execute, CallStack, ContractContext, Environment, GlobalContext, LocalContext,
+        eval, CallStack, ContractContext, Environment, GlobalContext, LocalContext,
         SymbolicExpression, Value,
     };
 

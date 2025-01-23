@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::collections::BTreeMap;
 use std::{cmp, fmt};
 
 use hashbrown::HashMap;
@@ -23,20 +22,18 @@ use serde::{Deserialize, Serialize};
 use stacks_common::types::StacksEpochId;
 
 use crate::boot_util::boot_code_id;
-use crate::vm::ast::ContractAST;
-use crate::vm::contexts::{ContractContext, Environment, GlobalContext, OwnedEnvironment};
+use crate::vm::contexts::{ContractContext, GlobalContext};
 use crate::vm::costs::cost_functions::ClarityCostFunction;
 use crate::vm::database::clarity_store::NullBackingStore;
 use crate::vm::database::ClarityDatabase;
-use crate::vm::errors::{Error, InterpreterResult};
+use crate::vm::errors::InterpreterResult;
 use crate::vm::types::signatures::FunctionType::Fixed;
-use crate::vm::types::signatures::{FunctionSignature, TupleTypeSignature};
+use crate::vm::types::signatures::TupleTypeSignature;
 use crate::vm::types::Value::UInt;
 use crate::vm::types::{
-    FunctionArg, FunctionType, PrincipalData, QualifiedContractIdentifier, TupleData,
-    TypeSignature, NONE,
+    FunctionType, PrincipalData, QualifiedContractIdentifier, TupleData, TypeSignature,
 };
-use crate::vm::{ast, eval_all, ClarityName, SymbolicExpression, Value};
+use crate::vm::{eval_all, ClarityName, SymbolicExpression, Value};
 
 pub mod constants;
 pub mod cost_functions;

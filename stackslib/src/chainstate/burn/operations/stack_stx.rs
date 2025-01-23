@@ -374,7 +374,7 @@ impl StacksMessageCodec for StackStxOp {
     fn consensus_serialize<W: Write>(&self, fd: &mut W) -> Result<(), codec_error> {
         write_next(fd, &(Opcodes::StackStx as u8))?;
         fd.write_all(&self.stacked_ustx.to_be_bytes())
-            .map_err(|e| codec_error::WriteError(e))?;
+            .map_err(codec_error::WriteError)?;
         write_next(fd, &self.num_cycles)?;
 
         if let Some(signer_key) = &self.signer_key {
@@ -383,11 +383,11 @@ impl StacksMessageCodec for StackStxOp {
         }
         if let Some(max_amount) = &self.max_amount {
             fd.write_all(&max_amount.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
         }
         if let Some(auth_id) = &self.auth_id {
             fd.write_all(&auth_id.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
         }
         Ok(())
     }

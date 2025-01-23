@@ -227,28 +227,28 @@ impl StacksMessageCodec for DelegateStxOp {
     fn consensus_serialize<W: Write>(&self, fd: &mut W) -> Result<(), codec_error> {
         write_next(fd, &(Opcodes::DelegateStx as u8))?;
         fd.write_all(&self.delegated_ustx.to_be_bytes())
-            .map_err(|e| codec_error::WriteError(e))?;
+            .map_err(codec_error::WriteError)?;
 
         if let Some((index, _)) = self.reward_addr {
             fd.write_all(&1_u8.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
             fd.write_all(&index.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
         } else {
             fd.write_all(&0_u8.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
             fd.write_all(&0_u32.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
         }
 
         if let Some(height) = self.until_burn_height {
             fd.write_all(&1_u8.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
             fd.write_all(&height.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
         } else {
             fd.write_all(&0_u8.to_be_bytes())
-                .map_err(|e| codec_error::WriteError(e))?;
+                .map_err(codec_error::WriteError)?;
         }
         Ok(())
     }

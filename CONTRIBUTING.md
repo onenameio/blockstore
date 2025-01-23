@@ -387,6 +387,18 @@ You can automatically reformat your commit via:
 cargo fmt-stacks
 ```
 
+## Clippy Warnings
+
+PRs will be checked against `clippy` and will _fail_ if any clippy warnings are generated.
+Unfortunately, not all existing clippy warnings have been addressed throughout stacks-core, so arguments must be passed via the command line. 
+Therefore, we handle `clippy` configurations using a Cargo alias: `cargo clippy-stacks`
+
+You can check what warnings need to be addressed locally via: 
+
+```bash
+cargo clippy-stacks
+```
+
 ## Comments
 
 Comments are very important for the readability and correctness of the codebase. The purpose of comments is:

@@ -507,7 +507,7 @@ impl NakamotoBootPlan {
         let reward_cycle = peer
             .config
             .burnchain
-            .block_height_to_reward_cycle(sortition_height.into())
+            .block_height_to_reward_cycle(sortition_height)
             .unwrap();
 
         // Make all the test Stackers stack
@@ -583,11 +583,7 @@ impl NakamotoBootPlan {
         debug!("\n\n======================");
         debug!("Advance to the Prepare Phase");
         debug!("========================\n\n");
-        while !peer
-            .config
-            .burnchain
-            .is_in_prepare_phase(sortition_height.into())
-        {
+        while !peer.config.burnchain.is_in_prepare_phase(sortition_height) {
             let mut old_tip = peer.network.stacks_tip.clone();
             stacks_block = peer.tenure_with_txs(&[], &mut peer_nonce);
 
@@ -1549,26 +1545,24 @@ fn test_network_result_update() {
     let mut n1 = network_result_1.clone();
     network_result_union
         .unhandled_messages
-        .extend(n1.unhandled_messages.into_iter());
+        .extend(n1.unhandled_messages);
     network_result_union.blocks.append(&mut n1.blocks);
     network_result_union
         .confirmed_microblocks
         .append(&mut n1.confirmed_microblocks);
     network_result_union
         .nakamoto_blocks
-        .extend(n1.nakamoto_blocks.into_iter());
+        .extend(n1.nakamoto_blocks);
     network_result_union
         .pushed_transactions
-        .extend(n1.pushed_transactions.into_iter());
-    network_result_union
-        .pushed_blocks
-        .extend(n1.pushed_blocks.into_iter());
+        .extend(n1.pushed_transactions);
+    network_result_union.pushed_blocks.extend(n1.pushed_blocks);
     network_result_union
         .pushed_microblocks
-        .extend(n1.pushed_microblocks.into_iter());
+        .extend(n1.pushed_microblocks);
     network_result_union
         .pushed_nakamoto_blocks
-        .extend(n1.pushed_nakamoto_blocks.into_iter());
+        .extend(n1.pushed_nakamoto_blocks);
     network_result_union
         .uploaded_transactions
         .append(&mut n1.uploaded_transactions);

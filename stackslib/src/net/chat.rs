@@ -676,8 +676,7 @@ impl ConversationP2P {
     }
 
     pub fn get_public_key_hash(&self) -> Option<Hash160> {
-        self.ref_public_key()
-            .map(|pubk| Hash160::from_node_public_key(pubk))
+        self.ref_public_key().map(Hash160::from_node_public_key)
     }
 
     pub fn ref_public_key(&self) -> Option<&StacksPublicKey> {
@@ -1462,7 +1461,7 @@ impl ConversationP2P {
 
         let neighbor_addrs: Vec<NeighborAddress> = neighbors
             .iter()
-            .map(|n| NeighborAddress::from_neighbor(n))
+            .map(NeighborAddress::from_neighbor)
             .collect();
 
         debug!(
@@ -1643,7 +1642,7 @@ impl ConversationP2P {
                 reward_cycle,
                 &block_hashes,
             )
-            .map_err(|e| net_error::from(e))?;
+            .map_err(net_error::from)?;
 
         if cfg!(test) {
             // make *sure* the behavior stays the same in epoch 2
@@ -2139,7 +2138,7 @@ impl ConversationP2P {
             );
             return self
                 .reply_nack(local_peer, chain_view, preamble, NackErrorCodes::Throttled)
-                .map(|handle| Some(handle));
+                .map(Some);
         }
         Ok(None)
     }
@@ -2177,7 +2176,7 @@ impl ConversationP2P {
             debug!("{:?}: Neighbor {:?} exceeded max microblocks-push bandwidth of {} bytes/sec (currently at {})", self, &self.to_neighbor_key(), self.connection.options.max_microblocks_push_bandwidth, self.stats.get_microblocks_push_bandwidth());
             return self
                 .reply_nack(local_peer, chain_view, preamble, NackErrorCodes::Throttled)
-                .map(|handle| Some(handle));
+                .map(Some);
         }
         Ok(None)
     }
@@ -2214,7 +2213,7 @@ impl ConversationP2P {
             debug!("{:?}: Neighbor {:?} exceeded max transaction-push bandwidth of {} bytes/sec (currently at {})", self, &self.to_neighbor_key(), self.connection.options.max_transaction_push_bandwidth, self.stats.get_transaction_push_bandwidth());
             return self
                 .reply_nack(local_peer, chain_view, preamble, NackErrorCodes::Throttled)
-                .map(|handle| Some(handle));
+                .map(Some);
         }
         Ok(None)
     }
@@ -2252,7 +2251,7 @@ impl ConversationP2P {
             debug!("{:?}: Neighbor {:?} exceeded max stackerdb-push bandwidth of {} bytes/sec (currently at {})", self, &self.to_neighbor_key(), self.connection.options.max_stackerdb_push_bandwidth, self.stats.get_stackerdb_push_bandwidth());
             return self
                 .reply_nack(local_peer, chain_view, preamble, NackErrorCodes::Throttled)
-                .map(|handle| Some(handle));
+                .map(Some);
         }
 
         Ok(None)
@@ -2291,7 +2290,7 @@ impl ConversationP2P {
             debug!("{:?}: Neighbor {:?} exceeded max Nakamoto block push bandwidth of {} bytes/sec (currently at {})", self, &self.to_neighbor_key(), self.connection.options.max_nakamoto_block_push_bandwidth, self.stats.get_nakamoto_block_push_bandwidth());
             return self
                 .reply_nack(local_peer, chain_view, preamble, NackErrorCodes::Throttled)
-                .map(|handle| Some(handle));
+                .map(Some);
         }
 
         Ok(None)
@@ -3154,8 +3153,8 @@ mod test {
         )
         .unwrap();
 
-        let mut tx = peerdb.tx_begin().unwrap();
-        PeerDB::set_local_services(&mut tx, services).unwrap();
+        let tx = peerdb.tx_begin().unwrap();
+        PeerDB::set_local_services(&tx, services).unwrap();
         tx.commit().unwrap();
 
         let stackerdb = StackerDBs::connect(&stackerdb_path, true).unwrap();
@@ -3237,9 +3236,9 @@ mod test {
     ) -> PeerNetwork {
         let test_path = format!("/tmp/stacks-test-databases-{}", test_name);
         {
-            let mut tx = peerdb.tx_begin().unwrap();
+            let tx = peerdb.tx_begin().unwrap();
             PeerDB::set_local_ipaddr(
-                &mut tx,
+                &tx,
                 &PeerAddress::from_socketaddr(socketaddr),
                 socketaddr.port(),
             )
@@ -5061,8 +5060,8 @@ mod test {
             // regenerate keys and expiries in peer 1
             let new_privkey = Secp256k1PrivateKey::new();
             {
-                let mut tx = peerdb_1.tx_begin().unwrap();
-                PeerDB::set_local_private_key(&mut tx, &new_privkey, (12350 + i) as u64).unwrap();
+                let tx = peerdb_1.tx_begin().unwrap();
+                PeerDB::set_local_private_key(&tx, &new_privkey, (12350 + i) as u64).unwrap();
                 tx.commit().unwrap();
             }
         }

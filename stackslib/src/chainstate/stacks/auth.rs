@@ -383,9 +383,7 @@ impl StacksMessageCodec for OrderIndependentMultisigSpendingCondition {
 
         // must all be compressed if we're using P2WSH
         if have_uncompressed && hash_mode == OrderIndependentMultisigHashMode::P2WSH {
-            let msg = format!(
-                "Failed to deserialize order independent multisig spending condition: expected compressed keys only"
-            );
+            let msg = "Failed to deserialize order independent multisig spending condition: expected compressed keys only".to_string();
             test_debug!("{msg}");
             return Err(codec_error::DeserializeError(msg));
         }
@@ -1135,6 +1133,18 @@ impl TransactionSpendingCondition {
             }
         }
     }
+
+    /// Checks if this TransactionSpendingCondition is supported in the passed epoch
+    /// OrderIndependent multisig is not supported before epoch 3.0
+    pub fn is_supported_in_epoch(&self, epoch_id: StacksEpochId) -> bool {
+        match self {
+            TransactionSpendingCondition::Singlesig(..)
+            | TransactionSpendingCondition::Multisig(..) => true,
+            TransactionSpendingCondition::OrderIndependentMultisig(..) => {
+                epoch_id >= StacksEpochId::Epoch30
+            }
+        }
+    }
 }
 
 impl StacksMessageCodec for TransactionAuth {
@@ -1391,28 +1401,11 @@ impl TransactionAuth {
     /// Checks if this TransactionAuth is supported in the passed epoch
     /// OrderIndependent multisig is not supported before epoch 3.0
     pub fn is_supported_in_epoch(&self, epoch_id: StacksEpochId) -> bool {
-        match &self {
-            TransactionAuth::Sponsored(ref origin, ref sponsor) => {
-                let origin_supported = match origin {
-                    TransactionSpendingCondition::OrderIndependentMultisig(..) => {
-                        epoch_id >= StacksEpochId::Epoch30
-                    }
-                    _ => true,
-                };
-                let sponsor_supported = match sponsor {
-                    TransactionSpendingCondition::OrderIndependentMultisig(..) => {
-                        epoch_id >= StacksEpochId::Epoch30
-                    }
-                    _ => true,
-                };
-                origin_supported && sponsor_supported
+        match self {
+            TransactionAuth::Standard(origin) => origin.is_supported_in_epoch(epoch_id),
+            TransactionAuth::Sponsored(origin, sponsor) => {
+                origin.is_supported_in_epoch(epoch_id) && sponsor.is_supported_in_epoch(epoch_id)
             }
-            TransactionAuth::Standard(ref origin) => match origin {
-                TransactionSpendingCondition::OrderIndependentMultisig(..) => {
-                    epoch_id >= StacksEpochId::Epoch30
-                }
-                _ => true,
-            },
         }
     }
 }

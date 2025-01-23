@@ -16,12 +16,8 @@
 
 use stacks_common::types::StacksEpochId;
 
-use crate::vm::analysis::errors::CheckErrors;
+use crate::vm::analysis::mem_type_check as mem_run_analysis;
 use crate::vm::analysis::type_checker::v2_1::tests::mem_type_check;
-use crate::vm::analysis::{
-    mem_type_check as mem_run_analysis, type_check, AnalysisDatabase, ContractAnalysis,
-};
-use crate::vm::ast::parse;
 use crate::vm::ClarityVersion;
 
 #[test]

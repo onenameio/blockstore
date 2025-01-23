@@ -53,6 +53,7 @@ use stacks::net::api::getaccount::AccountEntryResponse;
 use stacks::net::api::getcontractsrc::ContractSrcResponse;
 use stacks::net::api::getinfo::RPCPeerInfoData;
 use stacks::net::api::getpoxinfo::RPCPoxInfoData;
+use stacks::net::api::getsortition::SortitionInfo;
 use stacks::net::api::gettransaction_unconfirmed::UnconfirmedTransactionResponse;
 use stacks::net::api::postblock::StacksBlockAcceptedData;
 use stacks::net::api::postfeerate::RPCFeeEstimateResponse;
@@ -607,7 +608,9 @@ pub mod test_observer {
             .collect()
     }
 
-    pub fn contains_burn_block_range(range: impl RangeBounds<u64>) -> Result<(), String> {
+    /// Get missing burn blocks for a given height range
+    /// Returns Ok(..) if lookup is sucessful, whether there are missing blocks or not
+    pub fn get_missing_burn_blocks(range: impl RangeBounds<u64>) -> Result<Vec<u64>, String> {
         // Get set of all burn block heights
         let burn_block_heights = get_blocks()
             .into_iter()
@@ -629,12 +632,23 @@ pub mod test_observer {
         // Find indexes in range for which we don't have burn block in set
         let missing = (start..=end)
             .filter(|i| !burn_block_heights.contains(i))
-            .collect::<Vec<_>>();
+            .collect();
+
+        Ok(missing)
+    }
+
+    /// Similar to `missing_burn_blocks()` but returns `Err(..)` if blocks are missing
+    pub fn contains_burn_block_range(range: impl RangeBounds<u64> + Clone) -> Result<(), String> {
+        let missing = self::get_missing_burn_blocks(range.clone())?;
 
         if missing.is_empty() {
             Ok(())
         } else {
-            Err(format!("Missing the following burn blocks: {missing:?}"))
+            Err(format!(
+                "Missing the following burn blocks from {:?} to {:?}: {missing:?}",
+                range.start_bound(),
+                range.end_bound()
+            ))
         }
     }
 
@@ -1351,7 +1365,7 @@ pub fn get_account_result<F: std::fmt::Display>(
     let client = reqwest::blocking::Client::new();
     let path = format!("{http_origin}/v2/accounts/{account}?proof=0");
     let res = client.get(&path).send()?.json::<AccountEntryResponse>()?;
-    info!("Account response: {res:#?}");
+    debug!("Account response: {res:#?}");
     Ok(Account {
         balance: u128::from_str_radix(&res.balance[2..], 16).unwrap(),
         locked: u128::from_str_radix(&res.locked[2..], 16).unwrap(),
@@ -1361,6 +1375,22 @@ pub fn get_account_result<F: std::fmt::Display>(
 
 pub fn get_account<F: std::fmt::Display>(http_origin: &str, account: &F) -> Account {
     get_account_result(http_origin, account).unwrap()
+}
+
+pub fn get_sortition_info(conf: &Config) -> SortitionInfo {
+    let client = reqwest::blocking::Client::new();
+    let http_origin = format!("http://{}", &conf.node.rpc_bind);
+    let path = format!("{http_origin}/v3/sortitions");
+    let mut resp: Vec<_> = client.get(&path).send().unwrap().json().unwrap();
+    resp.pop().unwrap()
+}
+
+pub fn get_sortition_info_ch(conf: &Config, ch: &ConsensusHash) -> SortitionInfo {
+    let client = reqwest::blocking::Client::new();
+    let http_origin = format!("http://{}", &conf.node.rpc_bind);
+    let path = format!("{http_origin}/v3/sortitions/consensus/{ch}");
+    let mut resp: Vec<_> = client.get(&path).send().unwrap().json().unwrap();
+    resp.pop().unwrap()
 }
 
 pub fn get_neighbors(conf: &Config) -> Option<serde_json::Value> {

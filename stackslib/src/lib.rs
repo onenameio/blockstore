@@ -80,9 +80,7 @@ const BUILD_TYPE: &str = "debug";
 const BUILD_TYPE: &str = "release";
 
 pub fn version_string(pkg_name: &str, pkg_version: &str) -> String {
-    let git_branch = GIT_BRANCH
-        .map(|x| format!("{}", x))
-        .unwrap_or("".to_string());
+    let git_branch = GIT_BRANCH.map(String::from).unwrap_or("".to_string());
     let git_commit = GIT_COMMIT.unwrap_or("");
     let git_tree_clean = GIT_TREE_CLEAN.unwrap_or("");
 

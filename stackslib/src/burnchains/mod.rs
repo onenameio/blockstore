@@ -629,7 +629,7 @@ impl PoxConstants {
             // TODO: I *think* the logic of `== 0` here requires some further digging.
             //  `mod 0` may not have any rewards, but it does not behave like "prepare phase" blocks:
             //  is it already a member of reward cycle "N" where N = block_height / reward_cycle_len
-            reward_index == 0 || reward_index > u64::from(reward_cycle_length - prepare_length)
+            reward_index == 0 || reward_index > reward_cycle_length - prepare_length
         }
     }
 
@@ -658,7 +658,7 @@ impl PoxConstants {
         } else {
             let effective_height = block_height - first_block_height;
             let reward_index = effective_height % reward_cycle_length;
-            reward_index > u64::from(reward_cycle_length - prepare_length)
+            reward_index > reward_cycle_length - prepare_length
         }
     }
 

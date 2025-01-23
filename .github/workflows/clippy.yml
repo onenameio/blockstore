@@ -34,7 +34,4 @@ jobs:
           components: clippy
       - name: Clippy
         id: clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: -p libstackerdb -p stacks-signer -p pox-locking -p clarity -p libsigner -p stacks-common --no-deps --tests --all-features -- -D warnings
+        run: cargo clippy-stacks

@@ -112,7 +112,7 @@ impl ExitedPeer {
 
         let net_result = self.network.run(
             &indexer,
-            &mut sortdb,
+            &sortdb,
             &mut stacks_node.chainstate,
             &mut mempool,
             dns_client,

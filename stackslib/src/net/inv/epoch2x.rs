@@ -1600,13 +1600,11 @@ impl PeerNetwork {
             <= max_burn_block_height
         {
             self.burnchain.pox_constants.reward_cycle_length as u64
+        } else if target_block_height > max_burn_block_height {
+            debug!("{:?}: will not send GetBlocksInv to {:?}, since we are sync'ed up to its highest sortition block (target block is {}, max burn block is {})", &self.local_peer, nk, target_block_height, max_burn_block_height);
+            0
         } else {
-            if target_block_height > max_burn_block_height {
-                debug!("{:?}: will not send GetBlocksInv to {:?}, since we are sync'ed up to its highest sortition block (target block is {}, max burn block is {})", &self.local_peer, nk, target_block_height, max_burn_block_height);
-                0
-            } else {
-                max_burn_block_height - target_block_height + 1
-            }
+            max_burn_block_height - target_block_height + 1
         };
 
         if num_blocks == 0 {

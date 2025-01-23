@@ -174,24 +174,22 @@ impl NeighborRPC {
         let data_url = convo.data_url.clone();
         let data_addr = if let Some(ip) = convo.data_ip {
             ip.clone()
+        } else if convo.waiting_for_dns() {
+            debug!(
+                "{}: have not resolved {} data URL {} yet: waiting for DNS",
+                network.get_local_peer(),
+                &convo,
+                &data_url
+            );
+            return Err(NetError::WaitingForDNS);
         } else {
-            if convo.waiting_for_dns() {
-                debug!(
-                    "{}: have not resolved {} data URL {} yet: waiting for DNS",
-                    network.get_local_peer(),
-                    &convo,
-                    &data_url
-                );
-                return Err(NetError::WaitingForDNS);
-            } else {
-                debug!(
-                    "{}: have not resolved {} data URL {} yet, and not waiting for DNS",
-                    network.get_local_peer(),
-                    &convo,
-                    &data_url
-                );
-                return Err(NetError::PeerNotConnected);
-            }
+            debug!(
+                "{}: have not resolved {} data URL {} yet, and not waiting for DNS",
+                network.get_local_peer(),
+                &convo,
+                &data_url
+            );
+            return Err(NetError::PeerNotConnected);
         };
 
         let event_id =

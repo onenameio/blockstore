@@ -37,9 +37,9 @@ use std::time::{Duration, Instant};
 use clarity::boot_util::boot_code_id;
 use clarity::vm::types::PrincipalData;
 use libsigner::v0::messages::{
-    BlockAccepted, BlockResponse, MessageSlotID, PeerInfo, SignerMessage,
+    BlockAccepted, BlockRejection, BlockResponse, MessageSlotID, PeerInfo, SignerMessage,
 };
-use libsigner::{SignerEntries, SignerEventTrait};
+use libsigner::{BlockProposal, SignerEntries, SignerEventTrait};
 use stacks::chainstate::coordinator::comm::CoordinatorChannels;
 use stacks::chainstate::nakamoto::signer_set::NakamotoSigners;
 use stacks::chainstate::nakamoto::NakamotoBlock;
@@ -89,10 +89,12 @@ pub struct RunningNodes {
     pub vrfs_submitted: RunLoopCounter,
     pub commits_submitted: RunLoopCounter,
     pub blocks_processed: RunLoopCounter,
+    pub sortitions_processed: RunLoopCounter,
     pub nakamoto_blocks_proposed: RunLoopCounter,
     pub nakamoto_blocks_mined: RunLoopCounter,
     pub nakamoto_blocks_rejected: RunLoopCounter,
     pub nakamoto_blocks_signer_pushed: RunLoopCounter,
+    pub nakamoto_miner_directives: Arc<AtomicU64>,
     pub nakamoto_test_skip_commit_op: TestFlag<bool>,
     pub coord_channel: Arc<Mutex<CoordinatorChannels>>,
     pub conf: NeonConfig,
@@ -127,7 +129,7 @@ impl<S: Signer<T> + Send + 'static, T: SignerEventTrait + 'static> SignerTest<Sp
         )
     }
 
-    fn new_with_config_modifications<F: FnMut(&mut SignerConfig), G: FnMut(&mut NeonConfig)>(
+    pub fn new_with_config_modifications<F: FnMut(&mut SignerConfig), G: FnMut(&mut NeonConfig)>(
         num_signers: usize,
         initial_balances: Vec<(StacksAddress, u64)>,
         mut signer_config_modifier: F,
@@ -378,6 +380,7 @@ impl<S: Signer<T> + Send + 'static, T: SignerEventTrait + 'static> SignerTest<Sp
             timeout.as_secs(),
             coord_channels,
             commits_submitted,
+            true,
         )
         .unwrap();
         let t_start = Instant::now();
@@ -694,6 +697,33 @@ impl<S: Signer<T> + Send + 'static, T: SignerEventTrait + 'static> SignerTest<Sp
         })
     }
 
+    /// Get all block rejections for a given block
+    pub fn get_block_rejections(
+        &self,
+        signer_signature_hash: &Sha512Trunc256Sum,
+    ) -> Vec<BlockRejection> {
+        let stackerdb_events = test_observer::get_stackerdb_chunks();
+        let block_rejections = stackerdb_events
+            .into_iter()
+            .flat_map(|chunk| chunk.modified_slots)
+            .filter_map(|chunk| {
+                let message = SignerMessage::consensus_deserialize(&mut chunk.data.as_slice())
+                    .expect("Failed to deserialize SignerMessage");
+                match message {
+                    SignerMessage::BlockResponse(BlockResponse::Rejected(rejection)) => {
+                        if rejection.signer_signature_hash == *signer_signature_hash {
+                            Some(rejection)
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                }
+            })
+            .collect::<Vec<_>>();
+        block_rejections
+    }
+
     /// Get the latest block response from the given slot
     pub fn get_latest_block_response(&self, slot_id: u32) -> BlockResponse {
         let mut stackerdb = StackerDB::new(
@@ -723,6 +753,25 @@ impl<S: Signer<T> + Send + 'static, T: SignerEventTrait + 'static> SignerTest<Sp
             .as_block_accepted()
             .expect("Latest block response from slot #{slot_id} isn't a block acceptance")
             .clone()
+    }
+
+    /// Get miner stackerDB messages
+    pub fn get_miner_proposal_messages(&self) -> Vec<BlockProposal> {
+        let proposals: Vec<_> = test_observer::get_stackerdb_chunks()
+            .into_iter()
+            .flat_map(|chunk| chunk.modified_slots)
+            .filter_map(|chunk| {
+                let Ok(message) = SignerMessage::consensus_deserialize(&mut chunk.data.as_slice())
+                else {
+                    return None;
+                };
+                match message {
+                    SignerMessage::BlockProposal(proposal) => Some(proposal),
+                    _ => None,
+                }
+            })
+            .collect();
+        proposals
     }
 
     /// Get /v2/info from the node
@@ -881,11 +930,13 @@ fn setup_stx_btc_node<G: FnMut(&mut NeonConfig)>(
     let run_loop_stopper = run_loop.get_termination_switch();
     let Counters {
         blocks_processed,
+        sortitions_processed,
         naka_submitted_vrfs: vrfs_submitted,
         naka_submitted_commits: commits_submitted,
         naka_proposed_blocks: naka_blocks_proposed,
         naka_mined_blocks: naka_blocks_mined,
         naka_rejected_blocks: naka_blocks_rejected,
+        naka_miner_directives,
         naka_skip_commit_op: nakamoto_test_skip_commit_op,
         naka_signer_pushed_blocks,
         ..
@@ -918,11 +969,13 @@ fn setup_stx_btc_node<G: FnMut(&mut NeonConfig)>(
         vrfs_submitted,
         commits_submitted,
         blocks_processed,
+        sortitions_processed,
         nakamoto_blocks_proposed: naka_blocks_proposed,
         nakamoto_blocks_mined: naka_blocks_mined,
         nakamoto_blocks_rejected: naka_blocks_rejected,
         nakamoto_blocks_signer_pushed: naka_signer_pushed_blocks,
         nakamoto_test_skip_commit_op,
+        nakamoto_miner_directives: naka_miner_directives.0,
         coord_channel,
         conf: naka_conf,
     }

@@ -18,17 +18,17 @@ use stacks_common::types::StacksEpochId;
 
 use super::{SimpleNativeFunction, TypedNativeFunction};
 use crate::vm::analysis::type_checker::v2_05::{
-    check_argument_count, check_arguments_at_least, no_type, CheckErrors, CheckResult, TypeChecker,
+    check_argument_count, check_arguments_at_least, CheckErrors, CheckResult, TypeChecker,
     TypeResult, TypingContext,
 };
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{analysis_typecheck_cost, cost_functions, runtime_cost};
+use crate::vm::costs::{analysis_typecheck_cost, runtime_cost};
 use crate::vm::functions::NativeFunctions;
 use crate::vm::representations::{SymbolicExpression, SymbolicExpressionType};
 pub use crate::vm::types::signatures::{BufferLength, ListTypeData, StringUTF8Length, BUFF_1};
 use crate::vm::types::SequenceSubtype::*;
 use crate::vm::types::StringSubtype::*;
-use crate::vm::types::{FunctionType, TypeSignature, Value, MAX_VALUE_SIZE};
+use crate::vm::types::{FunctionType, TypeSignature, Value};
 use crate::vm::ClarityVersion;
 
 fn get_simple_native_or_user_define(

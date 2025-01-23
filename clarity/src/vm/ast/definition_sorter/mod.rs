@@ -17,9 +17,9 @@
 use hashbrown::{HashMap, HashSet};
 
 use crate::vm::ast::errors::{ParseError, ParseErrors, ParseResult};
-use crate::vm::ast::types::{BuildASTPass, ContractAST};
+use crate::vm::ast::types::ContractAST;
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost, CostTracker, LimitedCostTracker};
+use crate::vm::costs::{runtime_cost, CostTracker};
 use crate::vm::functions::define::DefineFunctions;
 use crate::vm::functions::NativeFunctions;
 use crate::vm::representations::PreSymbolicExpressionType::{
@@ -27,7 +27,6 @@ use crate::vm::representations::PreSymbolicExpressionType::{
     SugaredFieldIdentifier, TraitReference, Tuple,
 };
 use crate::vm::representations::{ClarityName, PreSymbolicExpression};
-use crate::vm::types::Value;
 use crate::vm::ClarityVersion;
 
 #[cfg(test)]

@@ -572,20 +572,18 @@ impl NakamotoBlockBuilder {
             );
             let mut remaining_limit = block_limit.clone();
             let cost_so_far = tenure_tx.cost_so_far();
-            if remaining_limit.sub(&cost_so_far).is_ok() {
-                if remaining_limit.divide(100).is_ok() {
-                    remaining_limit.multiply(percentage.into()).expect(
-                        "BUG: failed to multiply by {percentage} when previously divided by 100",
-                    );
-                    remaining_limit.add(&cost_so_far).expect("BUG: unexpected overflow when adding cost_so_far, which was previously checked");
-                    debug!(
-                        "Setting soft limit for clarity cost to {percentage}% of remaining block limit";
-                        "remaining_limit" => %remaining_limit,
-                        "cost_so_far" => %cost_so_far,
-                        "block_limit" => %block_limit,
-                    );
-                    soft_limit = Some(remaining_limit);
-                }
+            if remaining_limit.sub(&cost_so_far).is_ok() && remaining_limit.divide(100).is_ok() {
+                remaining_limit.multiply(percentage.into()).expect(
+                    "BUG: failed to multiply by {percentage} when previously divided by 100",
+                );
+                remaining_limit.add(&cost_so_far).expect("BUG: unexpected overflow when adding cost_so_far, which was previously checked");
+                debug!(
+                    "Setting soft limit for clarity cost to {percentage}% of remaining block limit";
+                    "remaining_limit" => %remaining_limit,
+                    "cost_so_far" => %cost_so_far,
+                    "block_limit" => %block_limit,
+                );
+                soft_limit = Some(remaining_limit);
             };
         }
 

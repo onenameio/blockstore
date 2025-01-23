@@ -3,7 +3,6 @@ use std::fs::File;
 use std::io::Write;
 
 use hashbrown::{HashMap, HashSet};
-use serde_json::Value as JsonValue;
 
 use super::functions::define::DefineFunctionsParsed;
 use super::EvalHook;

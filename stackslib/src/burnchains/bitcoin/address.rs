@@ -591,10 +591,10 @@ impl BitcoinAddress {
         } else {
             BitcoinNetworkType::Testnet
         };
-        if let Some(addr) = BitcoinAddress::from_scriptpubkey(network_id, scriptpubkey) {
-            if let BitcoinAddress::Segwit(sw) = addr {
-                return Some(BitcoinAddress::Segwit(sw));
-            }
+        if let Some(BitcoinAddress::Segwit(sw)) =
+            BitcoinAddress::from_scriptpubkey(network_id, scriptpubkey)
+        {
+            return Some(BitcoinAddress::Segwit(sw));
         }
         return None;
     }

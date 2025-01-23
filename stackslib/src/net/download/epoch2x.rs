@@ -997,10 +997,8 @@ impl BlockDownloader {
         if microblocks {
             // being requested now?
             for (_, reqs) in self.microblocks_to_try.iter() {
-                if !reqs.is_empty() {
-                    if reqs[0].index_block_hash == *index_hash {
-                        return true;
-                    }
+                if !reqs.is_empty() && reqs[0].index_block_hash == *index_hash {
+                    return true;
                 }
             }
 
@@ -1012,10 +1010,8 @@ impl BlockDownloader {
             }
         } else {
             for (_, reqs) in self.blocks_to_try.iter() {
-                if !reqs.is_empty() {
-                    if reqs[0].index_block_hash == *index_hash {
-                        return true;
-                    }
+                if !reqs.is_empty() && reqs[0].index_block_hash == *index_hash {
+                    return true;
                 }
             }
 

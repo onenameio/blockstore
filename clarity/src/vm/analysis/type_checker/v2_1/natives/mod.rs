@@ -20,19 +20,14 @@ use super::{
     check_argument_count, check_arguments_at_least, check_arguments_at_most,
     compute_typecheck_cost, no_type, TypeChecker, TypeResult, TypingContext,
 };
-use crate::vm::analysis::errors::{CheckError, CheckErrors, CheckResult};
+use crate::vm::analysis::errors::{CheckError, CheckErrors};
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{
-    analysis_typecheck_cost, cost_functions, runtime_cost, CostErrors, CostOverflowingMath,
-    CostTracker,
-};
-use crate::vm::errors::{Error as InterpError, RuntimeErrorType};
+use crate::vm::costs::{analysis_typecheck_cost, runtime_cost, CostErrors, CostTracker};
 use crate::vm::functions::{handle_binding_list, NativeFunctions};
 use crate::vm::types::signatures::{
     CallableSubtype, FunctionArgSignature, FunctionReturnsSignature, SequenceSubtype, ASCII_40,
     UTF8_40,
 };
-use crate::vm::types::TypeSignature::SequenceType;
 use crate::vm::types::{
     BlockInfoProperty, BufferLength, BurnBlockInfoProperty, FixedFunction, FunctionArg,
     FunctionSignature, FunctionType, PrincipalData, StacksBlockInfoProperty, TenureInfoProperty,

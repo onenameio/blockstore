@@ -15,6 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::io::{Read, Write};
+#[cfg(any(test, feature = "testing"))]
+use std::sync::LazyLock;
 use std::thread::{self, JoinHandle, Thread};
 #[cfg(any(test, feature = "testing"))]
 use std::time::Duration;
@@ -35,6 +37,8 @@ use stacks_common::types::net::PeerHost;
 use stacks_common::types::StacksPublicKeyBuffer;
 use stacks_common::util::hash::{hex_bytes, to_hex, Hash160, Sha256Sum, Sha512Trunc256Sum};
 use stacks_common::util::retry::BoundReader;
+#[cfg(any(test, feature = "testing"))]
+use stacks_common::util::tests::TestFlag;
 use stacks_common::util::{get_epoch_time_ms, get_epoch_time_secs};
 
 use crate::burnchains::affirmation::AffirmationMap;
@@ -67,11 +71,11 @@ use crate::net::{
 use crate::util_lib::db::Error as DBError;
 
 #[cfg(any(test, feature = "testing"))]
-pub static TEST_VALIDATE_STALL: std::sync::Mutex<Option<bool>> = std::sync::Mutex::new(None);
+pub static TEST_VALIDATE_STALL: LazyLock<TestFlag<bool>> = LazyLock::new(TestFlag::default);
 #[cfg(any(test, feature = "testing"))]
 /// Artificial delay to add to block validation.
-pub static TEST_VALIDATE_DELAY_DURATION_SECS: std::sync::Mutex<Option<u64>> =
-    std::sync::Mutex::new(None);
+pub static TEST_VALIDATE_DELAY_DURATION_SECS: LazyLock<TestFlag<u64>> =
+    LazyLock::new(TestFlag::default);
 
 // This enum is used to supply a `reason_code` for validation
 //  rejection responses. This is serialized as an enum with string
@@ -85,6 +89,8 @@ define_u8_enum![ValidateRejectCode {
     NonCanonicalTenure = 5,
     NoSuchTenure = 6
 }];
+
+pub static TOO_MANY_REQUESTS_STATUS: u16 = 429;
 
 impl TryFrom<u8> for ValidateRejectCode {
     type Error = CodecError;
@@ -172,6 +178,26 @@ impl From<Result<BlockValidateOk, BlockValidateReject>> for BlockValidateRespons
         }
     }
 }
+
+impl BlockValidateResponse {
+    /// Get the signer signature hash from the response
+    pub fn signer_signature_hash(&self) -> Sha512Trunc256Sum {
+        match self {
+            BlockValidateResponse::Ok(o) => o.signer_signature_hash,
+            BlockValidateResponse::Reject(r) => r.signer_signature_hash,
+        }
+    }
+}
+
+#[cfg(any(test, feature = "testing"))]
+fn fault_injection_validation_delay() {
+    let delay = TEST_VALIDATE_DELAY_DURATION_SECS.get();
+    warn!("Sleeping for {} seconds to simulate slow processing", delay);
+    thread::sleep(Duration::from_secs(delay));
+}
+
+#[cfg(not(any(test, feature = "testing")))]
+fn fault_injection_validation_delay() {}
 
 /// Represents a block proposed to the `v3/block_proposal` endpoint for validation
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -353,10 +379,10 @@ impl NakamotoBlockProposal {
     ) -> Result<BlockValidateOk, BlockValidateRejectReason> {
         #[cfg(any(test, feature = "testing"))]
         {
-            if *TEST_VALIDATE_STALL.lock().unwrap() == Some(true) {
+            if TEST_VALIDATE_STALL.get() {
                 // Do an extra check just so we don't log EVERY time.
                 warn!("Block validation is stalled due to testing directive.");
-                while *TEST_VALIDATE_STALL.lock().unwrap() == Some(true) {
+                while TEST_VALIDATE_STALL.get() {
                     std::thread::sleep(std::time::Duration::from_millis(10));
                 }
                 info!(
@@ -366,13 +392,7 @@ impl NakamotoBlockProposal {
         }
         let start = Instant::now();
 
-        #[cfg(any(test, feature = "testing"))]
-        {
-            if let Some(delay) = *TEST_VALIDATE_DELAY_DURATION_SECS.lock().unwrap() {
-                warn!("Sleeping for {} seconds to simulate slow processing", delay);
-                thread::sleep(Duration::from_secs(delay));
-            }
-        }
+        fault_injection_validation_delay();
 
         let mainnet = self.chain_id == CHAIN_ID_MAINNET;
         if self.chain_id != chainstate.chain_id || mainnet != chainstate.mainnet {
@@ -422,7 +442,7 @@ impl NakamotoBlockProposal {
                 })?;
 
         let burn_dbconn: SortitionHandleConn = sortdb.index_handle(&sort_tip.sortition_id);
-        let mut db_handle = sortdb.index_handle(&sort_tip.sortition_id);
+        let db_handle = sortdb.index_handle(&sort_tip.sortition_id);
 
         // (For the signer)
         // Verify that the block's tenure is on the canonical sortition history
@@ -436,7 +456,7 @@ impl NakamotoBlockProposal {
         // there must be a block-commit for this), or otherwise this block doesn't correspond to
         // any burnchain chainstate.
         let expected_burn_opt =
-            NakamotoChainState::get_expected_burns(&mut db_handle, chainstate.db(), &self.block)?;
+            NakamotoChainState::get_expected_burns(&db_handle, chainstate.db(), &self.block)?;
         if expected_burn_opt.is_none() {
             warn!(
                 "Rejected block proposal";
@@ -743,7 +763,7 @@ impl RPCRequestHandler for RPCBlockProposalRequestHandler {
         let res = node.with_node_state(|network, sortdb, chainstate, _mempool, rpc_args| {
             if network.is_proposal_thread_running() {
                 return Err((
-                    429,
+                    TOO_MANY_REQUESTS_STATUS,
                     NetError::SendError("Proposal currently being evaluated".into()),
                 ));
             }
@@ -778,7 +798,7 @@ impl RPCRequestHandler for RPCBlockProposalRequestHandler {
                 .spawn_validation_thread(sortdb, chainstate, receiver)
                 .map_err(|_e| {
                     (
-                        429,
+                        TOO_MANY_REQUESTS_STATUS,
                         NetError::SendError(
                             "IO error while spawning proposal callback thread".into(),
                         ),

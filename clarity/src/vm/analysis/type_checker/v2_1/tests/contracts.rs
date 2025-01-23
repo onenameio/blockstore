@@ -30,13 +30,10 @@ use crate::vm::analysis::{
 use crate::vm::ast::parse;
 use crate::vm::costs::LimitedCostTracker;
 use crate::vm::database::MemoryBackingStore;
-use crate::vm::errors::Error;
 use crate::vm::tests::test_clarity_versions;
 use crate::vm::types::signatures::CallableSubtype;
-use crate::vm::types::{
-    PrincipalData, QualifiedContractIdentifier, StandardPrincipalData, TypeSignature,
-};
-use crate::vm::{ClarityVersion, ContractName, SymbolicExpression};
+use crate::vm::types::{QualifiedContractIdentifier, TypeSignature};
+use crate::vm::{ClarityVersion, SymbolicExpression};
 
 fn mem_type_check_v1(snippet: &str) -> CheckResult<(Option<TypeSignature>, ContractAnalysis)> {
     mem_run_analysis(snippet, ClarityVersion::Clarity1, StacksEpochId::latest())
@@ -567,7 +564,6 @@ fn test_same_function_name(#[case] version: ClarityVersion, #[case] epoch: Stack
 
 #[test]
 fn test_expects() {
-    use crate::vm::analysis::type_check;
     let okay = "(define-map tokens { id: int } { balance: int })
          (define-private (my-get-token-balance)
             (let ((balance (unwrap!

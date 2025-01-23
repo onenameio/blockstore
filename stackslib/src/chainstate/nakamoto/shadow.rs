@@ -901,17 +901,17 @@ pub fn process_shadow_block(
         ) {
             Ok(receipt_opt) => receipt_opt,
             Err(ChainstateError::InvalidStacksBlock(msg)) => {
-                warn!("Encountered invalid block: {}", &msg);
+                warn!("Encountered invalid block: {msg}");
                 continue;
             }
             Err(ChainstateError::NetError(NetError::DeserializeError(msg))) => {
                 // happens if we load a zero-sized block (i.e. an invalid block)
-                warn!("Encountered invalid block (codec error): {}", &msg);
+                warn!("Encountered invalid block (codec error): {msg}");
                 continue;
             }
             Err(e) => {
                 // something else happened
-                return Err(e.into());
+                return Err(e);
             }
         };
 

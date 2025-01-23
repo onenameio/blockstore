@@ -1,13 +1,8 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
-
-use stacks_common::consts::CHAIN_ID_TESTNET;
 use stacks_common::types::StacksEpochId;
 
 use super::analysis::ContractAnalysis;
-use super::contexts::GlobalContext;
-use super::docs::contracts::ContractRef;
 use super::types::TypeSignature;
-use super::{eval_all, ClarityVersion, ContractContext, Error as VmError, Value};
+use super::ClarityVersion;
 use crate::vm::analysis::{run_analysis, CheckResult};
 use crate::vm::ast::{build_ast_with_rules, ASTRules};
 use crate::vm::costs::LimitedCostTracker;

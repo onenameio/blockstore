@@ -1602,17 +1602,15 @@ fn test_coinbase_pay_to_alt_recipient_v210(pay_to_contract: bool) {
                             } else {
                                 make_coinbase(miner, tenure_id)
                             }
+                        } else if let Some(alt_recipient) = alt_recipient_id {
+                            make_coinbase_with_nonce(
+                                miner,
+                                tenure_id,
+                                miner.get_nonce(),
+                                Some(alt_recipient),
+                            )
                         } else {
-                            if let Some(alt_recipient) = alt_recipient_id {
-                                make_coinbase_with_nonce(
-                                    miner,
-                                    tenure_id,
-                                    miner.get_nonce(),
-                                    Some(alt_recipient),
-                                )
-                            } else {
-                                make_coinbase(miner, tenure_id)
-                            }
+                            make_coinbase(miner, tenure_id)
                         }
                     } else {
                         let pk = StacksPrivateKey::new();

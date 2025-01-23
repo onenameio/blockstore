@@ -955,17 +955,15 @@ fn integration_test_get_info() {
                     .as_array()
                     .expect("Fees should be array");
 
-                let estimated_fee_rates: Vec<_> = estimations
+                let estimated_fee_rates = estimations
                     .iter()
-                    .map(|x| x.get("fee_rate").expect("Should have fee_rate field"))
-                    .collect();
-                let estimated_fees: Vec<_> = estimations
+                    .map(|x| x.get("fee_rate").expect("Should have fee_rate field"));
+                let estimated_fees = estimations
                     .iter()
-                    .map(|x| x.get("fee").expect("Should have fee field"))
-                    .collect();
+                    .map(|x| x.get("fee").expect("Should have fee field"));
 
-                assert_eq!(estimated_fee_rates.len(), 3, "Fee rates should be length 3 array");
-                assert_eq!(estimated_fees.len(), 3, "Fees should be length 3 array");
+                assert_eq!(estimated_fee_rates.count(), 3, "Fee rates should be length 3 array");
+                assert_eq!(estimated_fees.count(), 3, "Fees should be length 3 array");
 
                 let tx_payload = TransactionPayload::from(TransactionContractCall {
                     address: contract_addr,
@@ -1006,16 +1004,15 @@ fn integration_test_get_info() {
                     .as_array()
                     .expect("Fees should be array");
 
-                let estimated_fee_rates: Vec<_> = estimations
+                let estimated_fee_rates = estimations
                     .iter()
-                    .map(|x| x.get("fee_rate").expect("Should have fee_rate field"))
-                    .collect();
+                    .map(|x| x.get("fee_rate").expect("Should have fee_rate field"));
                 let estimated_fees: Vec<_> = estimations
                     .iter()
                     .map(|x| x.get("fee").expect("Should have fee field"))
                     .collect();
 
-                assert_eq!(estimated_fee_rates.len(), 3, "Fee rates should be length 3 array");
+                assert_eq!(estimated_fee_rates.count(), 3, "Fee rates should be length 3 array");
                 assert_eq!(estimated_fees.len(), 3, "Fees should be length 3 array");
 
                 let tx_payload = TransactionPayload::from(TransactionContractCall {

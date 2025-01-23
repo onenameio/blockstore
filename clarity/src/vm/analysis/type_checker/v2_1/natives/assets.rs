@@ -16,15 +16,12 @@
 
 use stacks_common::consts::TOKEN_TRANSFER_MEMO_LENGTH;
 
-use super::{no_type, FunctionType, TypeChecker, TypeResult, TypingContext};
-use crate::vm::analysis::errors::{check_argument_count, CheckError, CheckErrors, CheckResult};
+use super::{TypeChecker, TypeResult, TypingContext};
+use crate::vm::analysis::errors::{check_argument_count, CheckErrors};
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost};
+use crate::vm::costs::runtime_cost;
 use crate::vm::representations::SymbolicExpression;
-use crate::vm::types::{
-    BlockInfoProperty, BufferLength, SequenceSubtype, TupleTypeSignature, TypeSignature,
-    MAX_VALUE_SIZE,
-};
+use crate::vm::types::{BufferLength, SequenceSubtype, TypeSignature};
 
 pub fn check_special_get_owner(
     checker: &mut TypeChecker,

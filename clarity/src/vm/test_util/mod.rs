@@ -14,7 +14,7 @@ use crate::vm::ast::ASTRules;
 use crate::vm::costs::ExecutionCost;
 use crate::vm::database::{BurnStateDB, HeadersDB};
 use crate::vm::representations::SymbolicExpression;
-use crate::vm::types::{PrincipalData, ResponseData, StandardPrincipalData, TupleData, Value};
+use crate::vm::types::{PrincipalData, StandardPrincipalData, TupleData, Value};
 use crate::vm::{execute as vm_execute, execute_on_network as vm_execute_on_network, StacksEpoch};
 
 pub struct UnitTestBurnStateDB {

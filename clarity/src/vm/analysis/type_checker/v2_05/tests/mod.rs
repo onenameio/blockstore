@@ -17,20 +17,15 @@
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::analysis::errors::CheckErrors;
-use crate::vm::analysis::type_checker::v2_05::{TypeChecker, TypeResult, TypingContext};
-use crate::vm::analysis::types::ContractAnalysis;
-use crate::vm::analysis::{mem_type_check, type_check, AnalysisDatabase};
+use crate::vm::analysis::mem_type_check;
+use crate::vm::analysis::type_checker::v2_05::TypeResult;
+use crate::vm::ast::build_ast;
 use crate::vm::ast::errors::ParseErrors;
-use crate::vm::ast::{build_ast, parse};
-use crate::vm::contexts::OwnedEnvironment;
-use crate::vm::database::MemoryBackingStore;
-use crate::vm::representations::SymbolicExpression;
 use crate::vm::types::SequenceSubtype::*;
 use crate::vm::types::StringSubtype::*;
-use crate::vm::types::TypeSignature::{BoolType, IntType, PrincipalType, SequenceType, UIntType};
+use crate::vm::types::TypeSignature::{BoolType, IntType, PrincipalType, UIntType};
 use crate::vm::types::{
-    FixedFunction, FunctionType, PrincipalData, QualifiedContractIdentifier, TypeSignature, Value,
-    BUFF_32, BUFF_64,
+    FixedFunction, FunctionType, QualifiedContractIdentifier, TypeSignature, BUFF_32, BUFF_64,
 };
 use crate::vm::ClarityVersion;
 
@@ -1437,8 +1432,6 @@ fn test_response_inference() {
 
 #[test]
 fn test_function_arg_names() {
-    use crate::vm::analysis::type_check;
-
     let functions = [
         "(define-private (test (x int)) (ok 0))
          (define-public (test-pub (x int)) (ok 0))

@@ -117,8 +117,7 @@ impl FromRow<MissedBlockCommit> for MissedBlockCommit {
     fn from_row(row: &Row) -> Result<MissedBlockCommit, db_error> {
         let intended_sortition = SortitionId::from_column(row, "intended_sortition_id")?;
         let input_json: String = row.get_unwrap("input");
-        let input =
-            serde_json::from_str(&input_json).map_err(|e| db_error::SerializationError(e))?;
+        let input = serde_json::from_str(&input_json).map_err(db_error::SerializationError)?;
         let txid = Txid::from_column(row, "txid")?;
 
         Ok(MissedBlockCommit {
@@ -264,11 +263,10 @@ impl FromRow<LeaderBlockCommitOp> for LeaderBlockCommitOp {
 
         let memo = memo_bytes.to_vec();
 
-        let input =
-            serde_json::from_str(&input_json).map_err(|e| db_error::SerializationError(e))?;
+        let input = serde_json::from_str(&input_json).map_err(db_error::SerializationError)?;
 
-        let apparent_sender = serde_json::from_str(&apparent_sender_json)
-            .map_err(|e| db_error::SerializationError(e))?;
+        let apparent_sender =
+            serde_json::from_str(&apparent_sender_json).map_err(db_error::SerializationError)?;
 
         let burn_fee = burn_fee_str
             .parse::<u64>()
@@ -285,8 +283,8 @@ impl FromRow<LeaderBlockCommitOp> for LeaderBlockCommitOp {
             .as_deref()
             .map(serde_json::from_str)
             .transpose()
-            .map_err(|e| db_error::SerializationError(e))?
-            .unwrap_or_else(|| vec![]);
+            .map_err(db_error::SerializationError)?
+            .unwrap_or_default();
 
         let block_commit = LeaderBlockCommitOp {
             block_header_hash,
@@ -942,7 +940,7 @@ impl db_keys {
     }
 
     pub fn pox_reward_set_payouts_key() -> String {
-        format!("sortition_db::reward_set::payouts")
+        "sortition_db::reward_set::payouts".to_string()
     }
 
     pub fn pox_reward_set_payouts_value(addrs: Vec<PoxAddress>, payout_per_addr: u128) -> String {
@@ -1849,21 +1847,19 @@ impl SortitionHandleTx<'_> {
                     true
                 } else if cur_height > stacks_block_height {
                     false
+                } else if &cur_ch == consensus_hash {
+                    // same sortition (i.e. nakamoto block)
+                    // no replacement
+                    false
                 } else {
-                    if &cur_ch == consensus_hash {
-                        // same sortition (i.e. nakamoto block)
-                        // no replacement
-                        false
-                    } else {
-                        // tips come from different sortitions
-                        // break ties by going with the latter-signed block
-                        let sn_current = SortitionDB::get_block_snapshot_consensus(self, &cur_ch)?
+                    // tips come from different sortitions
+                    // break ties by going with the latter-signed block
+                    let sn_current = SortitionDB::get_block_snapshot_consensus(self, &cur_ch)?
+                        .ok_or(db_error::NotFoundError)?;
+                    let sn_accepted =
+                        SortitionDB::get_block_snapshot_consensus(self, &consensus_hash)?
                             .ok_or(db_error::NotFoundError)?;
-                        let sn_accepted =
-                            SortitionDB::get_block_snapshot_consensus(self, &consensus_hash)?
-                                .ok_or(db_error::NotFoundError)?;
-                        sn_current.block_height < sn_accepted.block_height
-                    }
+                    sn_current.block_height < sn_accepted.block_height
                 };
 
                 debug!("Setting Stacks tip as accepted";
@@ -4285,7 +4281,7 @@ impl SortitionDB {
     /// * `next_pox_info` - iff this sortition is the first block in a reward cycle, this should be Some
     /// * `announce_to` - a function that will be invoked with the calculated reward set before this method
     ///                   commits its results. This is used to post the calculated reward set to an event observer.
-    pub fn evaluate_sortition<F: FnOnce(Option<RewardSetInfo>)>(
+    pub fn evaluate_sortition<F: FnOnce(Option<RewardSetInfo>, ConsensusHash)>(
         &mut self,
         mainnet: bool,
         burn_header: &BurnchainBlockHeader,
@@ -4381,7 +4377,7 @@ impl SortitionDB {
                 .store_transition_ops(&new_snapshot.0.sortition_id, &new_snapshot.1)?;
         }
 
-        announce_to(reward_set_info);
+        announce_to(reward_set_info, new_snapshot.0.consensus_hash);
 
         if !dryrun {
             // commit everything!
@@ -4444,7 +4440,7 @@ impl SortitionDB {
         sortition_id: &SortitionId,
     ) -> Result<u64, BurnchainError> {
         let db_handle = self.index_handle(sortition_id);
-        SortitionDB::get_max_arrival_index(&db_handle).map_err(|e| BurnchainError::from(e))
+        SortitionDB::get_max_arrival_index(&db_handle).map_err(BurnchainError::from)
     }
 
     /// Get a burn blockchain snapshot, given a burnchain configuration struct.
@@ -5759,12 +5755,12 @@ impl SortitionHandleTx<'_> {
         assert!(block_commit.block_height < BLOCK_HEIGHT_MAX);
 
         // serialize tx input to JSON
-        let tx_input_str = serde_json::to_string(&block_commit.input)
-            .map_err(|e| db_error::SerializationError(e))?;
+        let tx_input_str =
+            serde_json::to_string(&block_commit.input).map_err(db_error::SerializationError)?;
 
         // serialize apparent sender to JSON
         let apparent_sender_str = serde_json::to_string(&block_commit.apparent_sender)
-            .map_err(|e| db_error::SerializationError(e))?;
+            .map_err(db_error::SerializationError)?;
 
         // find parent block commit's snapshot's sortition ID.
         // If the parent_block_ptr doesn't point to a valid snapshot, then store an empty
@@ -5774,10 +5770,9 @@ impl SortitionHandleTx<'_> {
             .map(|parent_commit_sn| parent_commit_sn.sortition_id)
             .unwrap_or(SortitionId([0x00; 32]));
 
-        if !cfg!(test) {
-            if block_commit.parent_block_ptr != 0 || block_commit.parent_vtxindex != 0 {
-                assert!(parent_sortition_id != SortitionId([0x00; 32]));
-            }
+        if !cfg!(test) && (block_commit.parent_block_ptr != 0 || block_commit.parent_vtxindex != 0)
+        {
+            assert!(parent_sortition_id != SortitionId([0x00; 32]));
         }
 
         let args = params![
@@ -5831,7 +5826,7 @@ impl SortitionHandleTx<'_> {
     fn insert_missed_block_commit(&mut self, op: &MissedBlockCommit) -> Result<(), db_error> {
         // serialize tx input to JSON
         let tx_input_str =
-            serde_json::to_string(&op.input).map_err(|e| db_error::SerializationError(e))?;
+            serde_json::to_string(&op.input).map_err(db_error::SerializationError)?;
 
         let args = params![op.txid, op.intended_sortition, tx_input_str];
 
@@ -6913,7 +6908,7 @@ pub mod tests {
             sender: &BurnchainSigner,
         ) -> Result<Option<LeaderBlockCommitOp>, db_error> {
             let apparent_sender_str =
-                serde_json::to_string(sender).map_err(|e| db_error::SerializationError(e))?;
+                serde_json::to_string(sender).map_err(db_error::SerializationError)?;
             let sql = "SELECT * FROM block_commits WHERE apparent_sender = ?1 ORDER BY block_height DESC LIMIT 1";
             let args = params![apparent_sender_str];
             query_row(conn, sql, args)
@@ -8874,7 +8869,7 @@ pub mod tests {
                 .get_stacks_header_hashes(
                     256,
                     &canonical_tip.consensus_hash,
-                    &mut BlockHeaderCache::new(),
+                    &BlockHeaderCache::new(),
                 )
                 .unwrap();
             SortitionDB::merge_block_header_cache(&mut cache, &hashes);
@@ -8916,7 +8911,7 @@ pub mod tests {
                 .get_stacks_header_hashes(
                     192,
                     &canonical_tip.consensus_hash,
-                    &mut BlockHeaderCache::new(),
+                    &BlockHeaderCache::new(),
                 )
                 .unwrap();
             SortitionDB::merge_block_header_cache(&mut cache, &hashes);
@@ -8956,7 +8951,7 @@ pub mod tests {
                 .get_stacks_header_hashes(
                     257,
                     &canonical_tip.consensus_hash,
-                    &mut BlockHeaderCache::new(),
+                    &BlockHeaderCache::new(),
                 )
                 .unwrap();
             SortitionDB::merge_block_header_cache(&mut cache, &hashes);

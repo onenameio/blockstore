@@ -59,7 +59,7 @@ impl BurnchainDB {
         let sql = "SELECT op FROM burnchain_db_block_ops WHERE block_hash = ?1";
         let args = params![block_hash];
         let mut ops: Vec<BlockstackOperationType> = query_rows(&self.conn, sql, args)?;
-        ops.sort_by(|a, b| a.vtxindex().cmp(&b.vtxindex()));
+        ops.sort_by_key(|op| op.vtxindex());
         Ok(ops)
     }
 
@@ -1316,38 +1316,30 @@ fn test_classify_delegate_stx() {
         "Only one delegate_stx op should have been accepted"
     );
 
-    let expected_pre_delegate_addr = StacksAddress::from_legacy_bitcoin_address(
-        &LegacyBitcoinAddress {
+    let expected_pre_delegate_addr =
+        StacksAddress::from_legacy_bitcoin_address(&LegacyBitcoinAddress {
             addrtype: LegacyBitcoinAddressType::PublicKeyHash,
             network_id: BitcoinNetworkType::Mainnet,
             bytes: Hash160([1; 20]),
-        }
-        .into(),
-    );
+        });
 
     let expected_delegate_addr = PoxAddress::Standard(
-        StacksAddress::from_legacy_bitcoin_address(
-            &LegacyBitcoinAddress {
-                addrtype: LegacyBitcoinAddressType::PublicKeyHash,
-                network_id: BitcoinNetworkType::Mainnet,
-                bytes: Hash160([2; 20]),
-            }
-            .into(),
-        ),
+        StacksAddress::from_legacy_bitcoin_address(&LegacyBitcoinAddress {
+            addrtype: LegacyBitcoinAddressType::PublicKeyHash,
+            network_id: BitcoinNetworkType::Mainnet,
+            bytes: Hash160([2; 20]),
+        }),
         Some(AddressHashMode::SerializeP2PKH),
     );
 
     let expected_reward_addr = Some((
         1,
         PoxAddress::Standard(
-            StacksAddress::from_legacy_bitcoin_address(
-                &LegacyBitcoinAddress {
-                    addrtype: LegacyBitcoinAddressType::PublicKeyHash,
-                    network_id: BitcoinNetworkType::Mainnet,
-                    bytes: Hash160([1; 20]),
-                }
-                .into(),
-            ),
+            StacksAddress::from_legacy_bitcoin_address(&LegacyBitcoinAddress {
+                addrtype: LegacyBitcoinAddressType::PublicKeyHash,
+                network_id: BitcoinNetworkType::Mainnet,
+                bytes: Hash160([1; 20]),
+            }),
             Some(AddressHashMode::SerializeP2PKH),
         ),
     ));

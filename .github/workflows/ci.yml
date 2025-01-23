@@ -112,19 +112,10 @@ jobs:
   ##         - commit to either (development, master) branch
   create-cache:
     if: |
-      needs.check-release.outputs.is_release == 'true' || (
-        github.event_name == 'workflow_dispatch' ||
-        github.event_name == 'pull_request' ||
-        github.event_name == 'merge_group' ||
-        (
-          contains('
-            refs/heads/master
-            refs/heads/develop
-            refs/heads/next
-          ', github.event.pull_request.head.ref) &&
-          github.event_name == 'push'
-        )
-      )
+      needs.check-release.outputs.is_release == 'true' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'merge_group'
     name: Create Test Cache
     needs:
       - rustfmt
@@ -144,19 +135,9 @@ jobs:
   ##         - commit to either (development, next, master) branch
   stacks-core-tests:
     if: |
-      needs.check-release.outputs.is_release == 'true' || (
-        github.event_name == 'workflow_dispatch' ||
-        github.event_name == 'pull_request' ||
-        github.event_name == 'merge_group' ||
-        (
-          contains('
-            refs/heads/master
-            refs/heads/develop
-            refs/heads/next
-          ', github.event.pull_request.head.ref) &&
-          github.event_name == 'push'
-        )
-      )
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'merge_group'
     name: Stacks Core Tests
     needs:
       - rustfmt
@@ -177,19 +158,9 @@ jobs:
   ##         - commit to either (development, next, master) branch
   stacks-core-build-tests:
     if: |
-      needs.check-release.outputs.is_release == 'true' || (
-        github.event_name == 'workflow_dispatch' ||
-        github.event_name == 'pull_request' ||
-        github.event_name == 'merge_group' ||
-        (
-          contains('
-            refs/heads/master
-            refs/heads/develop
-            refs/heads/next
-          ', github.event.pull_request.head.ref) &&
-          github.event_name == 'push'
-        )
-      )
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'merge_group'
     name: Stacks Core Build Tests
     needs:
       - rustfmt
@@ -198,19 +169,9 @@ jobs:
 
   bitcoin-tests:
     if: |
-      needs.check-release.outputs.is_release == 'true' || (
-        github.event_name == 'workflow_dispatch' ||
-        github.event_name == 'pull_request' ||
-        github.event_name == 'merge_group' ||
-        (
-          contains('
-            refs/heads/master
-            refs/heads/develop
-            refs/heads/next
-          ', github.event.pull_request.head.ref) &&
-          github.event_name == 'push'
-        )
-      )
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'merge_group'
     name: Bitcoin Tests
     needs:
       - rustfmt
@@ -218,22 +179,11 @@ jobs:
       - check-release
     uses: ./.github/workflows/bitcoin-tests.yml
 
-
   p2p-tests:
     if: |
-      needs.check-release.outputs.is_release == 'true' || (
-        github.event_name == 'workflow_dispatch' ||
-        github.event_name == 'pull_request' ||
-        github.event_name == 'merge_group' ||
-        (
-          contains('
-            refs/heads/master
-            refs/heads/develop
-            refs/heads/next
-          ', github.event.pull_request.head.ref) &&
-          github.event_name == 'push'
-        )
-      )
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'merge_group'
     name: P2P Tests
     needs:
       - rustfmt

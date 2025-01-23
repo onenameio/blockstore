@@ -294,10 +294,8 @@ impl ReadOnlyMarfStore<'_> {
     }
 
     pub fn trie_exists_for_block(&mut self, bhh: &StacksBlockId) -> Result<bool, DatabaseError> {
-        self.marf.with_conn(|conn| match conn.has_block(bhh) {
-            Ok(res) => Ok(res),
-            Err(e) => Err(DatabaseError::IndexError(e)),
-        })
+        self.marf
+            .with_conn(|conn| conn.has_block(bhh).map_err(DatabaseError::IndexError))
     }
 }
 

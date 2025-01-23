@@ -17,17 +17,15 @@
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost, CostTracker};
-use crate::vm::database::{ClarityDatabase, ClaritySerializable, STXBalance};
+use crate::vm::costs::{runtime_cost, CostTracker};
+use crate::vm::database::STXBalance;
 use crate::vm::errors::{
     check_argument_count, CheckErrors, Error, InterpreterError, InterpreterResult as Result,
     RuntimeErrorType,
 };
-use crate::vm::functions::tuples;
 use crate::vm::representations::SymbolicExpression;
 use crate::vm::types::{
-    AssetIdentifier, BlockInfoProperty, BuffData, CharType, OptionalData, PrincipalData,
-    SequenceData, TupleData, TypeSignature, Value,
+    AssetIdentifier, BuffData, PrincipalData, SequenceData, TupleData, TypeSignature, Value,
 };
 use crate::vm::{eval, Environment, LocalContext};
 

@@ -489,7 +489,7 @@ where
 
     // gather
     let mut row_data = vec![];
-    while let Some(row) = rows.next().map_err(|e| Error::SqliteError(e))? {
+    while let Some(row) = rows.next().map_err(Error::SqliteError)? {
         let next_row = T::from_column(&row, column_name)?;
         row_data.push(next_row);
     }
@@ -506,7 +506,7 @@ where
     let mut stmt = conn.prepare(sql_query)?;
     let mut rows = stmt.query(sql_args)?;
     let mut row_data = vec![];
-    while let Some(row) = rows.next().map_err(|e| Error::SqliteError(e))? {
+    while let Some(row) = rows.next().map_err(Error::SqliteError)? {
         if !row_data.is_empty() {
             return Err(Error::Overflow);
         }
@@ -535,7 +535,7 @@ pub fn sql_pragma(
     pragma_name: &str,
     pragma_value: &dyn ToSql,
 ) -> Result<(), Error> {
-    inner_sql_pragma(conn, pragma_name, pragma_value).map_err(|e| Error::SqliteError(e))
+    inner_sql_pragma(conn, pragma_name, pragma_value).map_err(Error::SqliteError)
 }
 
 fn inner_sql_pragma(

@@ -16,16 +16,13 @@
 
 use stacks_common::types::StacksEpochId;
 
-use super::check_special_tuple_cons;
 use crate::vm::analysis::type_checker::v2_05::{
-    check_arguments_at_least, no_type, CheckError, CheckErrors, TypeChecker, TypeResult,
-    TypingContext,
+    check_arguments_at_least, CheckError, CheckErrors, TypeChecker, TypeResult, TypingContext,
 };
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{analysis_typecheck_cost, cost_functions, runtime_cost};
-use crate::vm::functions::tuples;
-use crate::vm::representations::{SymbolicExpression, SymbolicExpressionType};
-use crate::vm::types::{PrincipalData, TypeSignature, Value};
+use crate::vm::costs::{analysis_typecheck_cost, runtime_cost};
+use crate::vm::representations::SymbolicExpression;
+use crate::vm::types::TypeSignature;
 
 pub fn check_special_fetch_entry(
     checker: &mut TypeChecker,

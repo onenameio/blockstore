@@ -19,23 +19,21 @@ pub mod natives;
 
 use std::collections::BTreeMap;
 
-use hashbrown::HashMap;
 use stacks_common::types::StacksEpochId;
 
 use self::contexts::ContractContext;
 pub use self::natives::{SimpleNativeFunction, TypedNativeFunction};
 use super::contexts::{TypeMap, TypingContext};
-use super::{AnalysisPass, ContractAnalysis};
+use super::ContractAnalysis;
 pub use crate::vm::analysis::errors::{
     check_argument_count, check_arguments_at_least, check_arguments_at_most, CheckError,
     CheckErrors, CheckResult,
 };
 use crate::vm::analysis::AnalysisDatabase;
-use crate::vm::contexts::Environment;
 use crate::vm::costs::cost_functions::ClarityCostFunction;
 use crate::vm::costs::{
-    analysis_typecheck_cost, cost_functions, runtime_cost, ClarityCostFunctionReference,
-    CostErrors, CostOverflowingMath, CostTracker, ExecutionCost, LimitedCostTracker,
+    analysis_typecheck_cost, runtime_cost, CostErrors, CostOverflowingMath, CostTracker,
+    ExecutionCost, LimitedCostTracker,
 };
 use crate::vm::diagnostic::Diagnostic;
 use crate::vm::functions::define::DefineFunctionsParsed;
@@ -45,13 +43,13 @@ use crate::vm::representations::SymbolicExpressionType::{
 };
 use crate::vm::representations::{depth_traverse, ClarityName, SymbolicExpression};
 use crate::vm::types::signatures::{
-    CallableSubtype, FunctionArgSignature, FunctionReturnsSignature, FunctionSignature, BUFF_20,
+    CallableSubtype, FunctionArgSignature, FunctionReturnsSignature, FunctionSignature,
 };
 use crate::vm::types::{
-    parse_name_type_pairs, CallableData, FixedFunction, FunctionArg, FunctionType, ListData,
-    ListTypeData, OptionalData, PrincipalData, QualifiedContractIdentifier, ResponseData,
-    SequenceData, SequenceSubtype, StringSubtype, TraitIdentifier, TupleData, TupleTypeSignature,
-    TypeSignature, Value, MAX_TYPE_DEPTH,
+    parse_name_type_pairs, FixedFunction, FunctionArg, FunctionType, ListData, ListTypeData,
+    OptionalData, PrincipalData, QualifiedContractIdentifier, ResponseData, SequenceData,
+    SequenceSubtype, StringSubtype, TraitIdentifier, TupleData, TupleTypeSignature, TypeSignature,
+    Value, MAX_TYPE_DEPTH,
 };
 use crate::vm::variables::NativeVariables;
 use crate::vm::ClarityVersion;

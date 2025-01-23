@@ -1,6 +1,7 @@
 [alias]
 stacks-node = "run --package stacks-node --"
 fmt-stacks = "fmt -- --config group_imports=StdExternalCrate,imports_granularity=Module"
+clippy-stacks = "clippy -p libstackerdb -p stacks-signer -p pox-locking -p clarity -p libsigner -p stacks-common --no-deps --tests --all-features -- -D warnings"
 
 # Uncomment to improve performance slightly, at the cost of portability
 #   * Note that native binaries may not run on CPUs that are different from the build machine

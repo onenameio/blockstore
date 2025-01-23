@@ -96,13 +96,13 @@ fn helper_execute_epoch(
         epoch,
         use_mainnet,
     );
-    let mut placeholder_context = ContractContext::new(
+    let placeholder_context = ContractContext::new(
         QualifiedContractIdentifier::transient(),
         ClarityVersion::default_for_epoch(epoch),
     );
 
     {
-        let mut env = owned_env.get_exec_environment(None, None, &mut placeholder_context);
+        let mut env = owned_env.get_exec_environment(None, None, &placeholder_context);
         env.initialize_contract(contract_id.clone(), contract, ASTRules::PrecheckSize)
             .unwrap();
     }

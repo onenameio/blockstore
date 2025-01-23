@@ -23,15 +23,12 @@ pub use super::errors::{
 use super::AnalysisDatabase;
 use crate::vm::analysis::types::{AnalysisPass, ContractAnalysis};
 use crate::vm::functions::define::DefineFunctionsParsed;
-use crate::vm::functions::{tuples, NativeFunctions};
+use crate::vm::functions::NativeFunctions;
 use crate::vm::representations::SymbolicExpressionType::{
     Atom, AtomValue, Field, List, LiteralValue, TraitReference,
 };
 use crate::vm::representations::{ClarityName, SymbolicExpression, SymbolicExpressionType};
-use crate::vm::types::{
-    parse_name_type_pairs, PrincipalData, TupleTypeSignature, TypeSignature, Value,
-};
-use crate::vm::variables::NativeVariables;
+use crate::vm::types::{PrincipalData, Value};
 use crate::vm::ClarityVersion;
 
 #[cfg(test)]

@@ -2408,11 +2408,11 @@ impl StacksBlockBuilder {
                                         .elapsed()
                                         .as_millis()
                                         .try_into()
-                                        .unwrap_or_else(|_| i64::MAX);
+                                        .unwrap_or(i64::MAX);
                                     let time_estimate_ms: u64 = time_estimate_ms
                                         .try_into()
                                         // should be unreachable
-                                        .unwrap_or_else(|_| 0);
+                                        .unwrap_or(0);
                                     update_timings.push((txinfo.tx.txid(), time_estimate_ms));
                                 }
 
@@ -2585,8 +2585,7 @@ impl StacksBlockBuilder {
         event_observer: Option<&dyn MemPoolEventDispatcher>,
         burnchain: &Burnchain,
     ) -> Result<(StacksBlock, ExecutionCost, u64), Error> {
-        if let TransactionPayload::Coinbase(..) = coinbase_tx.payload {
-        } else {
+        if !matches!(coinbase_tx.payload, TransactionPayload::Coinbase(..)) {
             return Err(Error::MemPoolError(
                 "Not a coinbase transaction".to_string(),
             ));

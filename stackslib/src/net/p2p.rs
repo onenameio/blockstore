@@ -1520,7 +1520,7 @@ impl PeerNetwork {
             return Ok(vec![]);
         }
 
-        let mut tx = self.peerdb.tx_begin()?;
+        let tx = self.peerdb.tx_begin()?;
         let mut disconnect = vec![];
         for event_id in self.bans.drain() {
             let (neighbor_key, neighbor_info_opt) = match self.peers.get(&event_id) {
@@ -1576,7 +1576,7 @@ impl PeerNetwork {
             );
 
             PeerDB::set_deny_peer(
-                &mut tx,
+                &tx,
                 neighbor_key.network_id,
                 &neighbor_key.addrbytes,
                 neighbor_key.port,

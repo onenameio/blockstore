@@ -118,8 +118,8 @@ impl RPCRequestHandler for RPCGetAttachmentRequestHandler {
             {
                 Ok(Some(attachment)) => Ok(GetAttachmentResponse { attachment }),
                 _ => {
-                    let msg = format!("Unable to find attachment");
-                    warn!("{}", msg);
+                    let msg = "Unable to find attachment".to_string();
+                    warn!("{msg}");
                     Err(StacksHttpResponse::new_error(
                         &preamble,
                         &HttpNotFound::new(msg),

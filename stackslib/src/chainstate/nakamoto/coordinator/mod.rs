@@ -1169,13 +1169,14 @@ impl<
                     &self.burnchain,
                     &last_processed_ancestor,
                     reward_cycle_info,
-                    |reward_set_info| {
+                    |reward_set_info, consensus_hash| {
                         if let Some(dispatcher) = dispatcher_ref {
                             dispatcher_announce_burn_ops(
                                 *dispatcher,
                                 &header,
                                 paid_rewards,
                                 reward_set_info,
+                                &consensus_hash,
                             );
                         }
                     },

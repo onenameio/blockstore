@@ -593,6 +593,7 @@ impl EventObserver {
         rewards: Vec<(PoxAddress, u64)>,
         burns: u64,
         slot_holders: Vec<PoxAddress>,
+        consensus_hash: &ConsensusHash,
     ) -> serde_json::Value {
         let reward_recipients = rewards
             .into_iter()
@@ -614,7 +615,8 @@ impl EventObserver {
             "burn_block_height": burn_block_height,
             "reward_recipients": serde_json::Value::Array(reward_recipients),
             "reward_slot_holders": serde_json::Value::Array(reward_slot_holders),
-            "burn_amount": burns
+            "burn_amount": burns,
+            "consensus_hash": format!("0x{consensus_hash}"),
         })
     }
 
@@ -867,6 +869,7 @@ impl EventObserver {
             "reward_set": reward_set_value,
             "cycle_number": cycle_number_value,
             "tenure_height": coinbase_height,
+            "consensus_hash": format!("0x{}", metadata.consensus_hash),
         });
 
         let as_object_mut = payload.as_object_mut().unwrap();
@@ -1103,6 +1106,7 @@ impl BlockEventDispatcher for EventDispatcher {
         rewards: Vec<(PoxAddress, u64)>,
         burns: u64,
         recipient_info: Vec<PoxAddress>,
+        consensus_hash: &ConsensusHash,
     ) {
         self.process_burn_block(
             burn_block,
@@ -1110,6 +1114,7 @@ impl BlockEventDispatcher for EventDispatcher {
             rewards,
             burns,
             recipient_info,
+            consensus_hash,
         )
     }
 }
@@ -1146,6 +1151,7 @@ impl EventDispatcher {
         rewards: Vec<(PoxAddress, u64)>,
         burns: u64,
         recipient_info: Vec<PoxAddress>,
+        consensus_hash: &ConsensusHash,
     ) {
         // lazily assemble payload only if we have observers
         let interested_observers = self.filter_observers(&self.burn_block_observers_lookup, true);
@@ -1159,6 +1165,7 @@ impl EventDispatcher {
             rewards,
             burns,
             recipient_info,
+            consensus_hash,
         );
 
         for observer in interested_observers.iter() {

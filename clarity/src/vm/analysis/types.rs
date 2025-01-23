@@ -16,14 +16,13 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use hashbrown::HashMap;
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::analysis::analysis_db::AnalysisDatabase;
 use crate::vm::analysis::contract_interface_builder::ContractInterface;
 use crate::vm::analysis::errors::{CheckErrors, CheckResult};
 use crate::vm::analysis::type_checker::contexts::TypeMap;
-use crate::vm::costs::{CostTracker, ExecutionCost, LimitedCostTracker};
+use crate::vm::costs::LimitedCostTracker;
 use crate::vm::types::signatures::FunctionSignature;
 use crate::vm::types::{FunctionType, QualifiedContractIdentifier, TraitIdentifier, TypeSignature};
 use crate::vm::{ClarityName, ClarityVersion, SymbolicExpression};

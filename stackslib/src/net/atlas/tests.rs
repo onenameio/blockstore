@@ -82,7 +82,7 @@ fn new_attachments_batch_from(
 fn new_peers(peers: Vec<(&str, u32, u32)>) -> HashMap<UrlString, ReliabilityReport> {
     let mut new_peers = HashMap::new();
     for (url, req_sent, req_success) in peers {
-        let url = UrlString::try_from(format!("{}", url).as_str()).unwrap();
+        let url = UrlString::try_from(url.to_string().as_str()).unwrap();
         new_peers.insert(url, ReliabilityReport::new(req_sent, req_success));
     }
     new_peers
@@ -97,7 +97,7 @@ fn new_attachment_request(
     let sources = {
         let mut s = HashMap::new();
         for (url, req_sent, req_success) in sources {
-            let url = UrlString::try_from(format!("{}", url)).unwrap();
+            let url = UrlString::try_from(url.to_string()).unwrap();
             s.insert(url, ReliabilityReport::new(req_sent, req_success));
         }
         s
@@ -118,7 +118,7 @@ fn new_attachments_inventory_request(
     req_sent: u32,
     req_success: u32,
 ) -> AttachmentsInventoryRequest {
-    let url = UrlString::try_from(format!("{}", url).as_str()).unwrap();
+    let url = UrlString::try_from(url.to_string().as_str()).unwrap();
 
     AttachmentsInventoryRequest {
         url,

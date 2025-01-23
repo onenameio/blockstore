@@ -158,11 +158,11 @@ impl AttachmentsDownloader {
                     let attachments_instances = network
                         .atlasdb
                         .find_all_attachment_instances(&attachment.hash())
-                        .map_err(|e| net_error::DBError(e))?;
+                        .map_err(net_error::DBError)?;
                     network
                         .atlasdb
                         .insert_instantiated_attachment(&attachment)
-                        .map_err(|e| net_error::DBError(e))?;
+                        .map_err(net_error::DBError)?;
                     for attachment_instance in attachments_instances.into_iter() {
                         resolved_attachments.push((attachment_instance, attachment.clone()));
                     }
@@ -1170,13 +1170,14 @@ impl AttachmentsBatch {
             self.stacks_block_height = attachment.stacks_block_height.clone();
             self.index_block_hash = attachment.index_block_hash.clone();
             self.canonical_stacks_tip_height = attachment.canonical_stacks_tip_height;
-        } else {
-            if self.stacks_block_height != attachment.stacks_block_height
-                || self.index_block_hash != attachment.index_block_hash
-            {
-                warn!("Atlas: attempt to add unrelated AttachmentInstance ({}, {}) to AttachmentsBatch", attachment.attachment_index, attachment.index_block_hash);
-                return;
-            }
+        } else if self.stacks_block_height != attachment.stacks_block_height
+            || self.index_block_hash != attachment.index_block_hash
+        {
+            warn!(
+                "Atlas: attempt to add unrelated AttachmentInstance ({}, {}) to AttachmentsBatch",
+                attachment.attachment_index, attachment.index_block_hash
+            );
+            return;
         }
 
         let inner_key = attachment.attachment_index;

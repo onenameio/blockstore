@@ -20,9 +20,8 @@ use rstest::rstest;
 use rstest_reuse::{self, *};
 use stacks_common::types::StacksEpochId;
 
-use crate::vm::analysis::contract_interface_builder::build_contract_interface;
 use crate::vm::analysis::errors::CheckErrors;
-use crate::vm::analysis::{type_check, AnalysisDatabase, CheckError};
+use crate::vm::analysis::{type_check, CheckError};
 use crate::vm::ast::errors::ParseErrors;
 use crate::vm::ast::{build_ast, parse};
 use crate::vm::database::MemoryBackingStore;

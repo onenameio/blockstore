@@ -14,25 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::cmp;
-
 use stacks_common::consts::CHAIN_ID_TESTNET;
 use stacks_common::types::chainstate::StacksBlockId;
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::callables::DefineType;
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{
-    constants as cost_constants, cost_functions, runtime_cost, CostTracker, MemoryConsumer,
-};
+use crate::vm::costs::{constants as cost_constants, runtime_cost, CostTracker, MemoryConsumer};
 use crate::vm::errors::{
     check_argument_count, check_arguments_at_least, CheckErrors, InterpreterError,
     InterpreterResult as Result, RuntimeErrorType,
 };
-use crate::vm::functions::tuples;
 use crate::vm::representations::{SymbolicExpression, SymbolicExpressionType};
 use crate::vm::types::{
-    BlockInfoProperty, BuffData, BurnBlockInfoProperty, OptionalData, PrincipalData, SequenceData,
+    BlockInfoProperty, BuffData, BurnBlockInfoProperty, PrincipalData, SequenceData,
     StacksBlockInfoProperty, TenureInfoProperty, TupleData, TypeSignature, Value, BUFF_32,
 };
 use crate::vm::{eval, ClarityVersion, Environment, LocalContext};

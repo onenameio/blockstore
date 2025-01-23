@@ -54,6 +54,7 @@ jobs:
           # - tests::neon_integrations::size_overflow_unconfirmed_microblocks_integration_test
           # - tests::neon_integrations::size_overflow_unconfirmed_stream_microblocks_integration_test
           # - tests::neon_integrations::runtime_overflow_unconfirmed_microblocks_integration_test
+          # - tests::epoch_25::microblocks_disabled
           # Disable this flaky test. Microblocks are no longer supported anyways.
           # - tests::neon_integrations::microblock_large_tx_integration_test_FLAKY
           - tests::neon_integrations::miner_submit_twice
@@ -80,7 +81,6 @@ jobs:
           - tests::neon_integrations::bitcoin_reorg_flap
           - tests::neon_integrations::bitcoin_reorg_flap_with_follower
           - tests::neon_integrations::start_stop_bitcoind
-          - tests::epoch_25::microblocks_disabled
           - tests::should_succeed_handling_malformed_and_valid_txs
           - tests::nakamoto_integrations::simple_neon_integration
           - tests::nakamoto_integrations::flash_blocks_on_epoch_3
@@ -125,6 +125,7 @@ jobs:
           - tests::signer::v0::continue_after_tenure_extend
           - tests::signer::v0::tenure_extend_after_idle_signers
           - tests::signer::v0::tenure_extend_after_idle_miner
+          - tests::signer::v0::tenure_extend_after_failed_miner
           - tests::signer::v0::tenure_extend_succeeds_after_rejected_attempt
           - tests::signer::v0::stx_transfers_dont_effect_idle_timeout
           - tests::signer::v0::idle_tenure_extend_active_mining
@@ -132,6 +133,8 @@ jobs:
           - tests::signer::v0::block_commit_delay
           - tests::signer::v0::continue_after_fast_block_no_sortition
           - tests::signer::v0::block_validation_response_timeout
+          - tests::signer::v0::block_validation_pending_table
+          - tests::signer::v0::new_tenure_while_validating_previous_scenario
           - tests::signer::v0::tenure_extend_after_bad_commit
           - tests::signer::v0::block_proposal_max_age_rejections
           - tests::signer::v0::global_acceptance_depends_on_block_announcement
@@ -139,6 +142,12 @@ jobs:
           - tests::signer::v0::incoming_signers_ignore_block_proposals
           - tests::signer::v0::outgoing_signers_ignore_block_proposals
           - tests::signer::v0::injected_signatures_are_ignored_across_boundaries
+          - tests::signer::v0::fast_sortition
+          - tests::signer::v0::single_miner_empty_sortition
+          - tests::signer::v0::multiple_miners_empty_sortition
+          - tests::signer::v0::block_proposal_timeout
+          - tests::signer::v0::rejected_blocks_count_towards_miner_validity
+          - tests::signer::v0::allow_reorg_within_first_proposal_burn_block_timing_secs
           - tests::nakamoto_integrations::burn_ops_integration_test
           - tests::nakamoto_integrations::check_block_heights
           - tests::nakamoto_integrations::clarity_burn_state
@@ -158,6 +167,7 @@ jobs:
           - tests::nakamoto_integrations::sip029_coinbase_change
           - tests::nakamoto_integrations::clarity_cost_spend_down
           - tests::nakamoto_integrations::v3_blockbyheight_api_endpoint
+          - tests::nakamoto_integrations::test_tenure_extend_from_flashblocks
           # TODO: enable these once v1 signer is supported by a new nakamoto epoch
           # - tests::signer::v1::dkg
           # - tests::signer::v1::sign_request_rejected

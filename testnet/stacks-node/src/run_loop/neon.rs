@@ -104,6 +104,8 @@ pub struct Counters {
     pub missed_microblock_tenures: RunLoopCounter,
     pub cancelled_commits: RunLoopCounter,
 
+    pub sortitions_processed: RunLoopCounter,
+
     pub naka_submitted_vrfs: RunLoopCounter,
     pub naka_submitted_commits: RunLoopCounter,
     pub naka_mined_blocks: RunLoopCounter,
@@ -111,6 +113,7 @@ pub struct Counters {
     pub naka_proposed_blocks: RunLoopCounter,
     pub naka_mined_tenures: RunLoopCounter,
     pub naka_signer_pushed_blocks: RunLoopCounter,
+    pub naka_miner_directives: RunLoopCounter,
 
     #[cfg(test)]
     pub naka_skip_commit_op: TestFlag<bool>,
@@ -139,6 +142,10 @@ impl Counters {
 
     pub fn bump_blocks_processed(&self) {
         Counters::inc(&self.blocks_processed);
+    }
+
+    pub fn bump_sortitions_processed(&self) {
+        Counters::inc(&self.sortitions_processed);
     }
 
     pub fn bump_microblocks_processed(&self) {
@@ -183,6 +190,10 @@ impl Counters {
 
     pub fn bump_naka_mined_tenures(&self) {
         Counters::inc(&self.naka_mined_tenures);
+    }
+
+    pub fn bump_naka_miner_directives(&self) {
+        Counters::inc(&self.naka_miner_directives);
     }
 
     pub fn set_microblocks_processed(&self, value: u64) {

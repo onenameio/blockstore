@@ -9,14 +9,32 @@ and this project adheres to the versioning scheme outlined in the [README.md](RE
 
 ### Added
 
+- The stacks-node miner now performs accurate tenure-extensions in certain bitcoin block production
+  cases: when a bitcoin block is produced before the previous bitcoin block's Stacks tenure started.
+  Previously, the miner had difficulty restarting their missed tenure and extending into the new
+  bitcoin block, leading to 1-2 bitcoin blocks of missed Stacks block production.
+- The event dispatcher now includes `consensus_hash` in the `/new_block` and `/new_burn_block` payloads. ([#5677](https://github.com/stacks-network/stacks-core/pull/5677))
+
+## Changed
+
+- When a miner reorgs the previous tenure due to a poorly timed block, it can now continue to build blocks on this new chain tip (#5691)
+
+## [3.1.0.0.3]
+
+### Added
+
 - Add `tenure_timeout_secs` to the miner for determining when a time-based tenure extend should be attempted.
 - Added configuration option `block_proposal_max_age_secs` under `[connection_options]` to prevent processing stale block proposals
 
 ### Changed
-- The RPC endpoint `/v3/block_proposal` no longer will evaluate block proposals more than `block_proposal_max_age_secs` old
 
+- The RPC endpoint `/v3/block_proposal` no longer will evaluate block proposals more than `block_proposal_max_age_secs` old
 - When a transaction is dropped due to replace-by-fee, the `/drop_mempool_tx` event observer payload now includes `new_txid`, which is the transaction that replaced this dropped transaction. When a transaction is dropped for other reasons, `new_txid` is `null`. [#5381](https://github.com/stacks-network/stacks-core/pull/5381)
 - Nodes will assume that all PoX anchor blocks exist by default, and stall initial block download indefinitely to await their arrival (#5502)
+
+### Fixed
+
+- Signers no longer accept messages for blocks from different reward cycles (#5662)
 
 ## [3.1.0.0.2]
 

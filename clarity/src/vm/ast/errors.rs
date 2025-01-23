@@ -21,7 +21,6 @@ use crate::vm::ast::parser::v2::lexer::token::Token;
 use crate::vm::costs::{CostErrors, ExecutionCost};
 use crate::vm::diagnostic::{DiagnosableError, Diagnostic, Level};
 use crate::vm::representations::{PreSymbolicExpression, Span};
-use crate::vm::types::{TupleTypeSignature, TypeSignature};
 use crate::vm::MAX_CALL_STACK_DEPTH;
 
 pub type ParseResult<T> = Result<T, ParseError>;
@@ -308,7 +307,6 @@ impl DiagnosableError for ParseErrors {
     }
 
     fn level(&self) -> crate::vm::diagnostic::Level {
-        use self::ParseErrors::*;
         match self {
             ParseErrors::NoteToMatchThis(_) => Level::Note,
             ParseErrors::Lexer(lexerError) => lexerError.level(),

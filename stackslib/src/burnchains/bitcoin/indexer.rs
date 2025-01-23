@@ -503,13 +503,11 @@ impl BitcoinIndexer {
         start_block: u64,
         remove_old: bool,
     ) -> Result<SpvClient, btc_error> {
-        if remove_old {
-            if PathBuf::from(&reorg_headers_path).exists() {
-                fs::remove_file(&reorg_headers_path).map_err(|e| {
-                    error!("Failed to remove {}", reorg_headers_path);
-                    btc_error::Io(e)
-                })?;
-            }
+        if remove_old && PathBuf::from(&reorg_headers_path).exists() {
+            fs::remove_file(&reorg_headers_path).map_err(|e| {
+                error!("Failed to remove {}", reorg_headers_path);
+                btc_error::Io(e)
+            })?;
         }
 
         // bootstrap reorg client
@@ -1100,8 +1098,10 @@ impl BurnchainIndexer for BitcoinIndexer {
         start_height: u64,
         end_height: Option<u64>,
     ) -> Result<u64, burnchain_error> {
-        if end_height.is_some() && end_height <= Some(start_height) {
-            return Ok(end_height.unwrap());
+        if let Some(end_height) = end_height {
+            if end_height <= start_height {
+                return Ok(end_height);
+            }
         }
 
         let new_height = self

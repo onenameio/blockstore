@@ -518,7 +518,7 @@ where
 
         marf_walk_cow_test(
             |s| make_node_path(s, node_id.to_u8(), &path_segments, [31u8; 40].to_vec()),
-            |x, y| path_gen(x, y),
+            &path_gen,
         );
     }
 }
@@ -1882,11 +1882,10 @@ fn marf_insert_flush_to_different_block() {
         ];
         let next_block_header = if (i + 1) % 256 == 0 {
             // next block
-            Some(BlockHeaderHash::from_bytes(&[
+            BlockHeaderHash::from_bytes(&[
                 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
                 2, 2, i0 as u8, i1 as u8,
-            ]))
-            .unwrap()
+            ])
         } else {
             None
         };

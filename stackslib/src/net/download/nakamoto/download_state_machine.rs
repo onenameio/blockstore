@@ -766,7 +766,7 @@ impl NakamotoDownloadStateMachine {
             &self.wanted_tenures,
             inventories.iter(),
         );
-        available.extend(prev_available.into_iter());
+        available.extend(prev_available);
 
         // calculate self.tenure_block_ids
         let prev_tenure_block_ids = self.prev_wanted_tenures
@@ -804,7 +804,7 @@ impl NakamotoDownloadStateMachine {
         // merge tenure block IDs
         for (naddr, prev_available) in prev_tenure_block_ids.into_iter() {
             if let Some(available) = tenure_block_ids.get_mut(&naddr) {
-                available.extend(prev_available.into_iter());
+                available.extend(prev_available);
             } else {
                 tenure_block_ids.insert(naddr, prev_available);
             }
@@ -830,7 +830,7 @@ impl NakamotoDownloadStateMachine {
                 &available,
             );
 
-            prev_schedule.extend(schedule.into_iter());
+            prev_schedule.extend(schedule);
             prev_schedule
         } else {
             let mut prev_schedule = self
@@ -851,13 +851,13 @@ impl NakamotoDownloadStateMachine {
                 &available,
             );
 
-            prev_schedule.extend(schedule.into_iter());
+            prev_schedule.extend(schedule);
             prev_schedule
         };
 
-        test_debug!("new schedule: {:?}", schedule);
-        test_debug!("new available: {:?}", &available);
-        test_debug!("new tenure_block_ids: {:?}", &tenure_block_ids);
+        test_debug!("new schedule: {schedule:?}");
+        test_debug!("new available: {available:?}");
+        test_debug!("new tenure_block_ids: {tenure_block_ids:?}");
 
         self.tenure_download_schedule = schedule;
         self.tenure_block_ids = tenure_block_ids;
@@ -874,7 +874,7 @@ impl NakamotoDownloadStateMachine {
         self.tenure_downloads.make_tenure_downloaders(
             &mut self.tenure_download_schedule,
             &mut self.available_tenures,
-            &mut self.tenure_block_ids,
+            &self.tenure_block_ids,
             count,
             current_reward_sets,
         )
@@ -1377,7 +1377,7 @@ impl NakamotoDownloadStateMachine {
 
         // schedule downloaders for the highest-confirmed tenure, if we generated any
         self.tenure_downloads
-            .add_downloaders(new_highest_confirmed_downloaders.into_iter());
+            .add_downloaders(new_highest_confirmed_downloaders);
 
         // coalesce blocks -- maps consensus hash to map of block id to block
         let mut coalesced_blocks: HashMap<ConsensusHash, HashMap<StacksBlockId, NakamotoBlock>> =

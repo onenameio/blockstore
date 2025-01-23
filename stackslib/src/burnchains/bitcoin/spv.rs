@@ -328,13 +328,11 @@ impl SpvClient {
             } else {
                 return Err(btc_error::DBError(db_error::NoDBError));
             }
-        } else {
+        } else if readwrite {
             // can just open
-            if readwrite {
-                OpenFlags::SQLITE_OPEN_READ_WRITE
-            } else {
-                OpenFlags::SQLITE_OPEN_READ_ONLY
-            }
+            OpenFlags::SQLITE_OPEN_READ_WRITE
+        } else {
+            OpenFlags::SQLITE_OPEN_READ_ONLY
         };
 
         let mut conn = sqlite_open(headers_path, open_flags, false)

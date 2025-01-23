@@ -896,14 +896,12 @@ impl<T: MarfTrieId> TrieMerkleProof<T> {
         for child_ptr in node.ptrs() {
             if child_ptr.id != TrieNodeID::Empty as u8 && child_ptr.chr == chr {
                 all_hashes.push(hash.clone());
+            } else if ih >= hashes.len() {
+                trace!("verify_get_hash: {} >= {}", ih, hashes.len());
+                return None;
             } else {
-                if ih >= hashes.len() {
-                    trace!("verify_get_hash: {} >= {}", ih, hashes.len());
-                    return None;
-                } else {
-                    all_hashes.push(hashes[ih].clone());
-                    ih += 1;
-                }
+                all_hashes.push(hashes[ih].clone());
+                ih += 1;
             }
         }
         if all_hashes.len() != count {

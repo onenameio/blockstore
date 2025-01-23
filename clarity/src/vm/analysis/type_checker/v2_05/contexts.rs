@@ -20,8 +20,7 @@ use hashbrown::{HashMap, HashSet};
 
 use crate::vm::analysis::errors::{CheckError, CheckErrors, CheckResult};
 use crate::vm::analysis::types::ContractAnalysis;
-use crate::vm::contexts::MAX_CONTEXT_DEPTH;
-use crate::vm::representations::{ClarityName, SymbolicExpression};
+use crate::vm::representations::ClarityName;
 use crate::vm::types::signatures::FunctionSignature;
 use crate::vm::types::{FunctionType, TraitIdentifier, TypeSignature};
 

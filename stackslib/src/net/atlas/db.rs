@@ -286,13 +286,11 @@ impl AtlasDB {
             } else {
                 return Err(db_error::NoDBError);
             }
-        } else {
+        } else if readwrite {
             // can just open
-            if readwrite {
-                OpenFlags::SQLITE_OPEN_READ_WRITE
-            } else {
-                OpenFlags::SQLITE_OPEN_READ_ONLY
-            }
+            OpenFlags::SQLITE_OPEN_READ_WRITE
+        } else {
+            OpenFlags::SQLITE_OPEN_READ_ONLY
         };
         let conn = sqlite_open(path, open_flags, false)?;
         Self::check_instantiate_db(atlas_config, conn, readwrite, create_flag)
@@ -376,7 +374,7 @@ impl AtlasDB {
     // Open an atlas database in memory (used for testing)
     #[cfg(test)]
     pub fn connect_memory(atlas_config: AtlasConfig) -> Result<AtlasDB, db_error> {
-        let conn = Connection::open_in_memory().map_err(|e| db_error::SqliteError(e))?;
+        let conn = Connection::open_in_memory().map_err(db_error::SqliteError)?;
         let mut db = AtlasDB {
             atlas_config,
             conn,

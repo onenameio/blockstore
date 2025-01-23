@@ -17,11 +17,11 @@
 use stacks_common::types::StacksEpochId;
 
 use crate::vm::analysis::type_checker::v2_05::{
-    check_argument_count, check_arguments_at_least, no_type, CheckError, CheckErrors, TypeChecker,
-    TypeResult, TypingContext,
+    check_argument_count, check_arguments_at_least, no_type, CheckErrors, TypeChecker, TypeResult,
+    TypingContext,
 };
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{analysis_typecheck_cost, cost_functions, runtime_cost};
+use crate::vm::costs::{analysis_typecheck_cost, runtime_cost};
 use crate::vm::representations::{ClarityName, SymbolicExpression};
 use crate::vm::types::TypeSignature;
 

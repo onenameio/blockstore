@@ -2623,8 +2623,7 @@ mod tests {
                     code_body: StacksString::from_str(contract).unwrap(),
                 },
                 None,
-            )
-            .into(),
+            ),
         );
 
         let tx2 = StacksTransaction::new(
@@ -2636,8 +2635,7 @@ mod tests {
                     code_body: StacksString::from_str(contract).unwrap(),
                 },
                 None,
-            )
-            .into(),
+            ),
         );
 
         tx1.post_conditions.push(TransactionPostCondition::STX(

@@ -227,7 +227,7 @@ fn get_blocks_inventory(peer: &mut TestPeer, start_height: u64, end_height: u64)
         ic.get_stacks_header_hashes(
             num_headers + 1,
             &ancestor.consensus_hash,
-            &mut BlockHeaderCache::new(),
+            &BlockHeaderCache::new(),
         )
         .unwrap()
     };
@@ -421,36 +421,34 @@ where
                 for b in 0..num_blocks {
                     if !peer_invs[i].has_ith_block(
                         ((b as u64) + first_stacks_block_height - first_sortition_height) as u16,
-                    ) {
-                        if block_data[b].1.is_some() {
-                            test_debug!(
-                                "Peer {} is missing block {} at sortition height {} (between {} and {})",
-                                i,
-                                b,
-                                (b as u64) + first_stacks_block_height - first_sortition_height,
-                                first_stacks_block_height - first_sortition_height,
-                                first_stacks_block_height - first_sortition_height
-                                    + (num_blocks as u64),
-                            );
-                            done = false;
-                        }
+                    ) && block_data[b].1.is_some()
+                    {
+                        test_debug!(
+                            "Peer {} is missing block {} at sortition height {} (between {} and {})",
+                            i,
+                            b,
+                            (b as u64) + first_stacks_block_height - first_sortition_height,
+                            first_stacks_block_height - first_sortition_height,
+                            first_stacks_block_height - first_sortition_height
+                                + (num_blocks as u64),
+                        );
+                        done = false;
                     }
                 }
                 for b in 1..(num_blocks - 1) {
                     if !peer_invs[i].has_ith_microblock_stream(
                         ((b as u64) + first_stacks_block_height - first_sortition_height) as u16,
-                    ) {
-                        if block_data[b].2.is_some() {
-                            test_debug!(
-                                "Peer {} is missing microblock stream {} (between {} and {})",
-                                i,
-                                (b as u64) + first_stacks_block_height - first_sortition_height,
-                                first_stacks_block_height - first_sortition_height,
-                                first_stacks_block_height - first_sortition_height
-                                    + ((num_blocks - 1) as u64),
-                            );
-                            done = false;
-                        }
+                    ) && block_data[b].2.is_some()
+                    {
+                        test_debug!(
+                            "Peer {} is missing microblock stream {} (between {} and {})",
+                            i,
+                            (b as u64) + first_stacks_block_height - first_sortition_height,
+                            first_stacks_block_height - first_sortition_height,
+                            first_stacks_block_height - first_sortition_height
+                                + ((num_blocks - 1) as u64),
+                        );
+                        done = false;
                     }
                 }
             }
@@ -614,7 +612,7 @@ fn make_contract_call_transaction(
     let tx_cc = {
         let mut tx_cc = StacksTransaction::new(
             TransactionVersion::Testnet,
-            spending_account.as_transaction_auth().unwrap().into(),
+            spending_account.as_transaction_auth().unwrap(),
             TransactionPayload::new_contract_call(
                 contract_address,
                 contract_name,

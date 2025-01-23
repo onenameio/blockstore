@@ -969,7 +969,7 @@ fn mine_10_stacks_blocks_1_fork() {
         );
 
         verify_keys_accepted(&mut node, &prev_keys);
-        verify_commits_accepted(&mut node, &next_block_commits);
+        verify_commits_accepted(&node, &next_block_commits);
 
         prev_keys.clear();
         prev_keys.append(&mut next_prev_keys);
@@ -1017,7 +1017,7 @@ fn mine_10_stacks_blocks_2_forks_disjoint() {
         );
 
         verify_keys_accepted(&mut node, &prev_keys_1);
-        verify_commits_accepted(&mut node, &next_block_commits);
+        verify_commits_accepted(&node, &next_block_commits);
 
         prev_keys_1.clear();
         prev_keys_1.append(&mut next_prev_keys);
@@ -1078,10 +1078,10 @@ fn mine_10_stacks_blocks_2_forks_disjoint() {
         assert!(next_snapshot_1.burn_header_hash != next_snapshot_2.burn_header_hash);
 
         verify_keys_accepted(&mut node, &prev_keys_1);
-        verify_commits_accepted(&mut node, &next_block_commits_1);
+        verify_commits_accepted(&node, &next_block_commits_1);
 
         verify_keys_accepted(&mut node, &prev_keys_2);
-        verify_commits_accepted(&mut node, &next_block_commits_2);
+        verify_commits_accepted(&node, &next_block_commits_2);
 
         prev_keys_1.clear();
         prev_keys_1.append(&mut next_prev_keys_1);
@@ -1132,7 +1132,7 @@ fn mine_10_stacks_blocks_2_forks_disjoint_same_blocks() {
         );
 
         verify_keys_accepted(&mut node, &prev_keys_1);
-        verify_commits_accepted(&mut node, &next_block_commits);
+        verify_commits_accepted(&node, &next_block_commits);
 
         prev_keys_1.clear();
         prev_keys_1.append(&mut next_prev_keys);
@@ -1205,10 +1205,10 @@ fn mine_10_stacks_blocks_2_forks_disjoint_same_blocks() {
         }
 
         verify_keys_accepted(&mut node, &prev_keys_1);
-        verify_commits_accepted(&mut node, &next_block_commits_1);
+        verify_commits_accepted(&node, &next_block_commits_1);
 
         verify_keys_accepted(&mut node, &prev_keys_2);
-        verify_commits_accepted(&mut node, &next_block_commits_2);
+        verify_commits_accepted(&node, &next_block_commits_2);
 
         prev_keys_1.clear();
         prev_keys_1.append(&mut next_prev_keys_1);

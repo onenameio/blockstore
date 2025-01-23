@@ -111,11 +111,11 @@ lazy_static! {
                                         TypeSignature::SequenceType(SequenceSubtype::BufferType(BufferLength::try_from(20u32).expect("FATAL: could not create (buff 20)"))))
                                 ])
                                 .expect("FATAL: unable to construct hint-replicas type")
-                                .into()),
+                                ),
                             MAX_HINT_REPLICAS)
                             .expect("FATAL: failed to construct hint-replicas list type")
                             .into())
-                    ]).expect("FATAL: unable to construct config type")).into(),
+                    ]).expect("FATAL: unable to construct config type")),
                 TypeSignature::UIntType
             ).expect("FATAL: unable to construct config response type")
         )
@@ -268,12 +268,11 @@ impl StackerDBConfig {
                         &contract_id
                     )))?;
 
-            if total_num_slots > STACKERDB_INV_MAX.into() {
+            if total_num_slots > STACKERDB_INV_MAX {
                 let reason = format!(
-                    "Contract {} stipulated more than the maximum number of slots",
-                    contract_id
+                    "Contract {contract_id} stipulated more than the maximum number of slots"
                 );
-                warn!("{}", &reason);
+                warn!("{reason}");
                 return Err(NetError::InvalidStackerDBContract(
                     contract_id.clone(),
                     reason,

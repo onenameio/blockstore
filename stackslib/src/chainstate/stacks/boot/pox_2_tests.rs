@@ -281,26 +281,22 @@ pub fn check_pox_print_event(
             match inner_tuple.data_map.get(inner_key) {
                 Some(v) => {
                     if v != &inner_val {
-                        wrong.push((
-                            format!("{}", &inner_key),
-                            format!("{}", v),
-                            format!("{}", &inner_val),
-                        ));
+                        wrong.push((inner_key.to_string(), v.to_string(), inner_val.to_string()));
                     }
                 }
                 None => {
-                    missing.push(format!("{}", &inner_key));
+                    missing.push(inner_key.to_string());
                 }
             }
             // assert_eq!(inner_tuple.data_map.get(inner_key), Some(&inner_val));
         }
         if !missing.is_empty() || !wrong.is_empty() {
-            eprintln!("missing:\n{:#?}", &missing);
-            eprintln!("wrong:\n{:#?}", &wrong);
+            eprintln!("missing:\n{missing:#?}");
+            eprintln!("wrong:\n{wrong:#?}");
             assert!(false);
         }
     } else {
-        error!("unexpected event type: {:?}", event);
+        error!("unexpected event type: {event:?}");
         panic!("Unexpected transaction event type.")
     }
 }
@@ -395,7 +391,7 @@ pub fn check_stacking_state_invariants(
 
             let entry_key = Value::from(
                 TupleData::from_data(vec![
-                    ("reward-cycle".into(), Value::UInt(cycle_checked.into())),
+                    ("reward-cycle".into(), Value::UInt(cycle_checked)),
                     ("index".into(), Value::UInt(reward_index)),
                 ])
                 .unwrap(),
@@ -574,9 +570,9 @@ pub fn check_stacker_link_invariants(peer: &mut TestPeer, tip: &StacksBlockId, c
     }
     let expected_total = get_reward_cycle_total(peer, tip, cycle_number);
     assert_eq!(
-        u128::try_from(checked_total).unwrap(),
+        checked_total,
         expected_total,
-        "{}", format!("Invariant violated at cycle {}: total reward cycle amount does not equal sum of reward set", cycle_number)
+        "Invariant violated at cycle {cycle_number}: total reward cycle amount does not equal sum of reward set"
     );
 }
 
@@ -1466,7 +1462,7 @@ fn delegate_stack_increase() {
 
     assert_eq!(first_v2_cycle, EXPECTED_FIRST_V2_CYCLE);
 
-    eprintln!("First v2 cycle = {}", first_v2_cycle);
+    eprintln!("First v2 cycle = {first_v2_cycle}");
 
     let epochs = StacksEpoch::all(0, 0, EMPTY_SORTITIONS as u64 + 10);
 
@@ -1474,7 +1470,7 @@ fn delegate_stack_increase() {
 
     let (mut peer, mut keys) = instantiate_pox_peer_with_epoch(
         &burnchain,
-        &format!("pox_2_delegate_stack_increase"),
+        "pox_2_delegate_stack_increase",
         Some(epochs.clone()),
         Some(&observer),
     );
@@ -1830,7 +1826,7 @@ fn stack_increase() {
 
     let (mut peer, mut keys) = instantiate_pox_peer_with_epoch(
         &burnchain,
-        &format!("test_simple_pox_2_increase"),
+        "test_simple_pox_2_increase",
         Some(epochs.clone()),
         Some(&observer),
     );
@@ -4509,7 +4505,7 @@ fn stack_aggregation_increase() {
 
     let (mut peer, mut keys) = instantiate_pox_peer_with_epoch(
         &burnchain,
-        &format!("pox_2_stack_aggregation_increase"),
+        "pox_2_stack_aggregation_increase",
         Some(epochs.clone()),
         Some(&observer),
     );
@@ -4959,7 +4955,7 @@ fn stack_in_both_pox1_and_pox2() {
 
     let (mut peer, mut keys) = instantiate_pox_peer_with_epoch(
         &burnchain,
-        &format!("stack_in_both_pox1_and_pox2"),
+        "stack_in_both_pox1_and_pox2",
         Some(epochs.clone()),
         Some(&observer),
     );

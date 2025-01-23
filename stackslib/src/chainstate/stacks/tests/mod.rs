@@ -1356,12 +1356,12 @@ pub fn make_user_stacks_transfer(
 ) -> StacksTransaction {
     let payload =
         TransactionPayload::TokenTransfer(recipient.clone(), amount, TokenTransferMemo([0; 34]));
-    sign_standard_singlesig_tx(payload.into(), sender, nonce, tx_fee)
+    sign_standard_singlesig_tx(payload, sender, nonce, tx_fee)
 }
 
 pub fn make_user_coinbase(sender: &StacksPrivateKey, nonce: u64, tx_fee: u64) -> StacksTransaction {
     let payload = TransactionPayload::Coinbase(CoinbasePayload([0; 32]), None, None);
-    sign_standard_singlesig_tx(payload.into(), sender, nonce, tx_fee)
+    sign_standard_singlesig_tx(payload, sender, nonce, tx_fee)
 }
 
 pub fn make_user_poison_microblock(
@@ -1370,7 +1370,7 @@ pub fn make_user_poison_microblock(
     tx_fee: u64,
     payload: TransactionPayload,
 ) -> StacksTransaction {
-    sign_standard_singlesig_tx(payload.into(), sender, nonce, tx_fee)
+    sign_standard_singlesig_tx(payload, sender, nonce, tx_fee)
 }
 
 pub fn sign_standard_singlesig_tx(

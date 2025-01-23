@@ -134,7 +134,7 @@ where
         node.add_key_register(&mut burn_block, &mut miner);
 
         let (stacks_block, microblocks, block_commit_op) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner,
             &mut burn_block,
             &last_key,
@@ -320,7 +320,7 @@ where
         node.add_key_register(&mut burn_block, &mut miner_2);
 
         let (stacks_block, microblocks, block_commit_op) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block,
             &last_key,
@@ -464,7 +464,7 @@ where
         node.add_key_register(&mut burn_block, &mut miner_2);
 
         let (stacks_block_1, microblocks_1, block_commit_op_1) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block,
             &last_key_1,
@@ -512,7 +512,7 @@ where
         );
 
         let (stacks_block_2, microblocks_2, block_commit_op_2) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_2,
             &mut burn_block,
             &last_key_2,
@@ -801,7 +801,7 @@ where
         node.add_key_register(&mut burn_block, &mut miner_2);
 
         let (stacks_block_1, microblocks_1, block_commit_op_1) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block,
             &last_key_1,
@@ -849,7 +849,7 @@ where
         );
 
         let (stacks_block_2, microblocks_2, block_commit_op_2) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_2,
             &mut burn_block,
             &last_key_2,
@@ -1065,7 +1065,7 @@ where
         node_2.add_key_register(&mut burn_block, &mut miner_2);
 
         let (stacks_block_1, microblocks_1, block_commit_op_1) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block,
             &last_key_1,
@@ -1114,7 +1114,7 @@ where
         );
 
         let (stacks_block_2, microblocks_2, block_commit_op_2) = node_2.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_2,
             &mut burn_block,
             &last_key_2,
@@ -1417,7 +1417,7 @@ where
         node.add_key_register(&mut burn_block, &mut miner_2);
 
         let (stacks_block_1, microblocks_1, block_commit_op_1) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block,
             &last_key_1,
@@ -1462,7 +1462,7 @@ where
         );
 
         let (stacks_block_2, microblocks_2, block_commit_op_2) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_2,
             &mut burn_block,
             &last_key_2,
@@ -1661,7 +1661,7 @@ where
             get_last_microblock_header(&node, &miner_2, parent_block_opt_2.as_ref());
 
         let (stacks_block_1, microblocks_1, block_commit_op_1) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block_1,
             &last_key_1,
@@ -1709,7 +1709,7 @@ where
         );
 
         let (stacks_block_2, microblocks_2, block_commit_op_2) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_2,
             &mut burn_block_2,
             &last_key_2,
@@ -1972,7 +1972,7 @@ where
         node.add_key_register(&mut burn_block, &mut miner_2);
 
         let (stacks_block_1, microblocks_1, block_commit_op_1) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block,
             &last_key_1,
@@ -2017,7 +2017,7 @@ where
         );
 
         let (stacks_block_2, microblocks_2, block_commit_op_2) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_2,
             &mut burn_block,
             &last_key_2,
@@ -2216,7 +2216,7 @@ where
             get_last_microblock_header(&node, &miner_2, parent_block_opt_2.as_ref());
 
         let (stacks_block_1, microblocks_1, block_commit_op_1) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_1,
             &mut burn_block_1,
             &last_key_1,
@@ -2264,7 +2264,7 @@ where
         );
 
         let (stacks_block_2, microblocks_2, block_commit_op_2) = node.mine_stacks_block(
-            &mut burn_node.sortdb,
+            &burn_node.sortdb,
             &mut miner_2,
             &mut burn_block_2,
             &last_key_2,

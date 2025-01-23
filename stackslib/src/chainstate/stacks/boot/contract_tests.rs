@@ -1789,7 +1789,6 @@ fn test_deploy_smart_contract(
 // test that the maximum stackerdb list size will fit in a value
 fn max_stackerdb_list() {
     let signers_list: Vec<_> = (0..SIGNERS_MAX_LIST_SIZE)
-        .into_iter()
         .map(|signer_ix| {
             let signer_address = StacksAddress {
                 version: 0,
@@ -2524,8 +2523,7 @@ fn test_vote_withdrawal() {
             "vote-proposal",
             &symbols_from_values(vec![Value::UInt(0), Value::UInt(10)]),
         )
-        .unwrap()
-        .0;
+        .unwrap();
 
         // Assert that the number of votes is correct
         assert_eq!(
@@ -2551,8 +2549,7 @@ fn test_vote_withdrawal() {
             "vote-proposal",
             &symbols_from_values(vec![Value::UInt(0), Value::UInt(5)]),
         )
-        .unwrap()
-        .0;
+        .unwrap();
 
         // Assert that the number of votes is correct
         assert_eq!(
@@ -2753,8 +2750,7 @@ fn test_vote_fail() {
                 "vote-proposal",
                 &symbols_from_values(vec![Value::UInt(0), Value::UInt(USTX_PER_HOLDER)]),
             )
-            .unwrap()
-            .0;
+            .unwrap();
         }
 
         // Assert confirmation returns true
@@ -2953,8 +2949,7 @@ fn test_vote_confirm() {
                 "vote-proposal",
                 &symbols_from_values(vec![Value::UInt(0), Value::UInt(USTX_PER_HOLDER)]),
             )
-            .unwrap()
-            .0;
+            .unwrap();
         }
 
         // Assert confirmation returns true
@@ -3092,8 +3087,7 @@ fn test_vote_too_many_confirms() {
                     "withdraw-votes",
                     &symbols_from_values(vec![Value::UInt(i), Value::UInt(USTX_PER_HOLDER)]),
                 )
-                .unwrap()
-                .0;
+                .unwrap();
             }
         }
     });

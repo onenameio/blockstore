@@ -700,12 +700,7 @@ impl Address for StacksAddress {
     }
 
     fn from_string(s: &str) -> Option<StacksAddress> {
-        let (version, bytes) = match c32_address_decode(s) {
-            Ok((v, b)) => (v, b),
-            Err(_) => {
-                return None;
-            }
-        };
+        let (version, bytes) = c32_address_decode(s).ok()?;
 
         if bytes.len() != 20 {
             return None;

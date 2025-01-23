@@ -313,13 +313,11 @@ impl LeaderBlockCommitOp {
         })?;
 
         // basic sanity checks
-        if data.parent_block_ptr == 0 {
-            if data.parent_vtxindex != 0 {
-                warn!("Invalid tx: parent block back-pointer must be positive");
-                return Err(op_error::ParseError);
-            }
-            // if parent block ptr and parent vtxindex are both 0, then this block's parent is
-            // the genesis block.
+        // if parent block ptr and parent vtxindex are both 0, then this block's parent is
+        // the genesis block.
+        if data.parent_block_ptr == 0 && data.parent_vtxindex != 0 {
+            warn!("Invalid tx: parent block back-pointer must be positive");
+            return Err(op_error::ParseError);
         }
 
         if u64::from(data.parent_block_ptr) >= block_height {
@@ -467,9 +465,7 @@ impl LeaderBlockCommitOp {
     pub fn all_outputs_burn(&self) -> bool {
         self.commit_outs
             .iter()
-            .fold(true, |previous_is_burn, output_addr| {
-                previous_is_burn && output_addr.is_burn()
-            })
+            .all(|output_addr| output_addr.is_burn())
     }
 
     pub fn spent_txid(&self) -> &Txid {

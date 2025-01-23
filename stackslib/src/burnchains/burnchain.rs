@@ -1128,7 +1128,7 @@ impl Burnchain {
             burnchain,
             &sortition_tip,
             None,
-            |_| {},
+            |_, _| {},
         )
     }
 

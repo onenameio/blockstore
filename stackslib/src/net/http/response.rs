@@ -520,14 +520,14 @@ impl StacksMessageCodec for HttpResponsePreamble {
                             )
                         })?;
                     if !value.is_ascii() {
-                        return Err(CodecError::DeserializeError(format!(
-                            "Invalid HTTP request: header value is not ASCII-US"
-                        )));
+                        return Err(CodecError::DeserializeError(
+                            "Invalid HTTP request: header value is not ASCII-US".to_string(),
+                        ));
                     }
                     if value.len() > HTTP_PREAMBLE_MAX_ENCODED_SIZE as usize {
-                        return Err(CodecError::DeserializeError(format!(
-                            "Invalid HTTP request: header value is too big"
-                        )));
+                        return Err(CodecError::DeserializeError(
+                            "Invalid HTTP request: header value is too big".to_string(),
+                        ));
                     }
 
                     let key = resp.headers[i].name.to_string().to_lowercase();

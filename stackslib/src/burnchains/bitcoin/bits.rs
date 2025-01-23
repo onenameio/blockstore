@@ -223,10 +223,7 @@ impl BitcoinTxInputStructured {
                         Instruction::Op(btc_opcodes::OP_CHECKMULTISIG),
                     ) => {
                         // op1 and op2 must be integers
-                        match (
-                            btc_opcodes::from(*op1).classify(),
-                            btc_opcodes::from(*op2).classify(),
-                        ) {
+                        match (op1.classify(), op2.classify()) {
                             (Class::PushNum(num_sigs), Class::PushNum(num_pubkeys)) => {
                                 // the "#instructions - 3" comes from the OP_m, OP_n, and OP_CHECKMULTISIG
                                 if num_sigs < 1

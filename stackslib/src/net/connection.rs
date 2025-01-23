@@ -1284,10 +1284,8 @@ impl<P: ProtocolFamily> ConnectionOutbox<P> {
             message_eof,
         );
 
-        if total_sent == 0 {
-            if disconnected && !blocked {
-                return Err(net_error::PeerNotConnected);
-            }
+        if total_sent == 0 && disconnected && !blocked {
+            return Err(net_error::PeerNotConnected);
         }
         update_outbound_bandwidth(total_sent as i64);
         Ok(total_sent)

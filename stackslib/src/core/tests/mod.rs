@@ -148,7 +148,7 @@ pub fn make_block(
         .unwrap();
 
     StacksChainState::insert_stacks_block_header(
-        &mut chainstate_tx,
+        &chainstate_tx,
         &new_index_hash,
         &new_tip_info,
         &ExecutionCost::ZERO,
@@ -1627,15 +1627,15 @@ fn mempool_db_load_store_replace_tx(#[case] behavior: MempoolCollectionBehavior)
     assert_eq!(txs.len(), 0);
 
     eprintln!("garbage-collect");
-    let mut mempool_tx = mempool.tx_begin().unwrap();
+    let mempool_tx = mempool.tx_begin().unwrap();
     match behavior {
         MempoolCollectionBehavior::ByStacksHeight => {
-            MemPoolDB::garbage_collect_by_coinbase_height(&mut mempool_tx, 101, None)
+            MemPoolDB::garbage_collect_by_coinbase_height(&mempool_tx, 101, None)
         }
         MempoolCollectionBehavior::ByReceiveTime => {
             let test_max_age = Duration::from_secs(1);
             std::thread::sleep(2 * test_max_age);
-            MemPoolDB::garbage_collect_by_time(&mut mempool_tx, &test_max_age, None)
+            MemPoolDB::garbage_collect_by_time(&mempool_tx, &test_max_age, None)
         }
     }
     .unwrap();
@@ -2130,9 +2130,7 @@ fn test_make_mempool_sync_data() {
                     }
 
                     // all recent transactions should be present
-                    assert!(
-                        present_count >= cmp::min(MAX_BLOOM_COUNTER_TXS.into(), txids.len() as u32)
-                    );
+                    assert!(present_count >= cmp::min(MAX_BLOOM_COUNTER_TXS, txids.len() as u32));
                 }
                 MemPoolSyncData::TxTags(ref seed, ref tags) => {
                     eprintln!("txtags({}); txids.len() == {}", block_height, txids.len());

@@ -22,15 +22,14 @@ use crate::vm::analysis::type_checker::v2_1::{
     TypeResult, TypingContext,
 };
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{analysis_typecheck_cost, cost_functions, runtime_cost, CostTracker};
+use crate::vm::costs::{analysis_typecheck_cost, runtime_cost, CostTracker};
 use crate::vm::diagnostic::Diagnostic;
 use crate::vm::functions::NativeFunctions;
 use crate::vm::representations::{SymbolicExpression, SymbolicExpressionType};
 pub use crate::vm::types::signatures::{BufferLength, ListTypeData, StringUTF8Length, BUFF_1};
 use crate::vm::types::SequenceSubtype::*;
 use crate::vm::types::StringSubtype::*;
-use crate::vm::types::{FunctionType, TypeSignature, Value, MAX_VALUE_SIZE};
-use crate::vm::ClarityVersion;
+use crate::vm::types::{FunctionType, TypeSignature, Value};
 
 fn get_simple_native_or_user_define(
     function_name: &str,

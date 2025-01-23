@@ -213,9 +213,8 @@ impl StacksMessageCodec for TransferStxOp {
         }
         write_next(fd, &(Opcodes::TransferStx as u8))?;
         fd.write_all(&self.transfered_ustx.to_be_bytes())
-            .map_err(|e| codec_error::WriteError(e))?;
-        fd.write_all(&self.memo)
-            .map_err(|e| codec_error::WriteError(e))?;
+            .map_err(codec_error::WriteError)?;
+        fd.write_all(&self.memo).map_err(codec_error::WriteError)?;
         Ok(())
     }
 

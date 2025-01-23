@@ -21,9 +21,8 @@ use hashbrown::{HashMap, HashSet};
 use crate::vm::analysis::errors::{CheckError, CheckErrors, CheckResult};
 use crate::vm::analysis::type_checker::is_reserved_word;
 use crate::vm::analysis::types::ContractAnalysis;
-use crate::vm::contexts::MAX_CONTEXT_DEPTH;
-use crate::vm::representations::{ClarityName, SymbolicExpression};
-use crate::vm::types::signatures::{CallableSubtype, FunctionSignature};
+use crate::vm::representations::ClarityName;
+use crate::vm::types::signatures::FunctionSignature;
 use crate::vm::types::{FunctionType, QualifiedContractIdentifier, TraitIdentifier, TypeSignature};
 use crate::vm::ClarityVersion;
 

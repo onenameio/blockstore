@@ -62,6 +62,18 @@ lazy_static! {
         "Time (seconds) measuring round-trip RPC call latency to the Stacks node"
         // Will use DEFAULT_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0] by default
     ), &["path"]).unwrap();
+
+    pub static ref SIGNER_BLOCK_VALIDATION_LATENCIES_HISTOGRAM: HistogramVec = register_histogram_vec!(histogram_opts!(
+        "stacks_signer_block_validation_latencies_histogram",
+        "Time (seconds) measuring block validation time reported by the Stacks node",
+        vec![0.005, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 20.0]
+    ), &[]).unwrap();
+
+    pub static ref SIGNER_BLOCK_RESPONSE_LATENCIES_HISTOGRAM: HistogramVec = register_histogram_vec!(histogram_opts!(
+        "stacks_signer_block_response_latencies_histogram",
+        "Time (seconds) measuring end-to-end time to respond to a block",
+        vec![0.005, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 20.0, 30.0, 60.0, 120.0]
+    ), &[]).unwrap();
 }
 
 pub fn gather_metrics_string() -> String {

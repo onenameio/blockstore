@@ -14,26 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::path::PathBuf;
-
 #[cfg(feature = "canonical")]
 use rusqlite::Connection;
-use stacks_common::types::chainstate::{BlockHeaderHash, StacksBlockId, TrieHash, VRFSeed};
-use stacks_common::util::hash::{hex_bytes, to_hex, Hash160, Sha512Trunc256Sum};
+use stacks_common::types::chainstate::{StacksBlockId, TrieHash};
+use stacks_common::util::hash::{hex_bytes, to_hex, Sha512Trunc256Sum};
 
 use crate::vm::analysis::AnalysisDatabase;
 use crate::vm::contexts::GlobalContext;
 #[cfg(feature = "canonical")]
-use crate::vm::database::SqliteConnection;
 use crate::vm::database::{
-    BurnStateDB, ClarityDatabase, ClarityDeserializable, ClaritySerializable, HeadersDB,
-    NULL_BURN_STATE_DB, NULL_HEADER_DB,
+    ClarityDatabase, ClarityDeserializable, ClaritySerializable, NULL_BURN_STATE_DB, NULL_HEADER_DB,
 };
-use crate::vm::errors::{
-    CheckErrors, IncomparableError, InterpreterError, InterpreterResult as Result,
-    InterpreterResult, RuntimeErrorType,
-};
-use crate::vm::events::StacksTransactionEvent;
+use crate::vm::errors::{InterpreterError, InterpreterResult as Result};
 use crate::vm::types::{PrincipalData, QualifiedContractIdentifier};
 use crate::vm::Value;
 

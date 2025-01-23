@@ -250,7 +250,7 @@ impl NakamotoUnconfirmedTenureDownloader {
                     &local_tenure_sn.sortition_id,
                     &local_tenure_sn.consensus_hash
                 );
-                NetError::DBError(DBError::NotFoundError.into())
+                NetError::DBError(DBError::NotFoundError)
             })?;
 
         if ancestor_parent_local_tenure_sn.sortition_id != parent_local_tenure_sn.sortition_id {

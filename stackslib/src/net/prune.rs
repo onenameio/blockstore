@@ -199,11 +199,9 @@ impl PeerNetwork {
             match org_neighbors.get_mut(&org) {
                 None => {}
                 Some(ref mut neighbor_infos) => {
-                    neighbor_infos.sort_unstable_by(
-                        |&(ref _nk1, ref stats1), &(ref _nk2, ref stats2)| {
-                            PeerNetwork::compare_neighbor_uptime_health(stats1, stats2)
-                        },
-                    );
+                    neighbor_infos.sort_unstable_by(|(_nk1, stats1), (_nk2, stats2)| {
+                        PeerNetwork::compare_neighbor_uptime_health(stats1, stats2)
+                    });
                 }
             }
         }
@@ -341,17 +339,15 @@ impl PeerNetwork {
 
         // sort in order by first-contact time (oldest first)
         for (_, stats_list) in ip_neighbor.iter_mut() {
-            stats_list.sort_by(
-                |&(ref _e1, ref _nk1, ref stats1), &(ref _e2, ref _nk2, ref stats2)| {
-                    if stats1.first_contact_time < stats2.first_contact_time {
-                        Ordering::Less
-                    } else if stats1.first_contact_time > stats2.first_contact_time {
-                        Ordering::Greater
-                    } else {
-                        Ordering::Equal
-                    }
-                },
-            );
+            stats_list.sort_by(|(_e1, _nk1, stats1), (_e2, _nk2, stats2)| {
+                if stats1.first_contact_time < stats2.first_contact_time {
+                    Ordering::Less
+                } else if stats1.first_contact_time > stats2.first_contact_time {
+                    Ordering::Greater
+                } else {
+                    Ordering::Equal
+                }
+            });
         }
 
         let mut to_remove = vec![];

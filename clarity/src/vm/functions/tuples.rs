@@ -14,13 +14,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::vm::costs::cost_functions::ClarityCostFunction;
-use crate::vm::costs::{cost_functions, runtime_cost};
+use crate::vm::costs::runtime_cost;
 use crate::vm::errors::{
     check_argument_count, check_arguments_at_least, CheckErrors, InterpreterError,
     InterpreterResult as Result,
 };
-use crate::vm::representations::SymbolicExpressionType::List;
-use crate::vm::representations::{SymbolicExpression, SymbolicExpressionType};
+use crate::vm::representations::SymbolicExpression;
 use crate::vm::types::{TupleData, TypeSignature, Value};
 use crate::vm::{eval, Environment, LocalContext};
 

@@ -756,7 +756,7 @@ impl NakamotoChainState {
                 headers_conn.sqlite(),
                 &block_header.parent_block_id,
             )?
-            .map(|parent_version| NakamotoBlockHeader::is_shadow_block_version(parent_version))
+            .map(NakamotoBlockHeader::is_shadow_block_version)
             .unwrap_or(false);
 
             if !is_parent_shadow_block && !prev_sn.sortition {

@@ -20,14 +20,11 @@ use {assert_json_diff, serde_json};
 
 use crate::vm::analysis::contract_interface_builder::build_contract_interface;
 use crate::vm::analysis::errors::CheckErrors;
-use crate::vm::analysis::{
-    mem_type_check, type_check, AnalysisDatabase, CheckError, ContractAnalysis,
-};
+use crate::vm::analysis::{mem_type_check, type_check};
 use crate::vm::ast::parse;
-use crate::vm::costs::LimitedCostTracker;
 use crate::vm::database::MemoryBackingStore;
 use crate::vm::types::QualifiedContractIdentifier;
-use crate::vm::{ClarityVersion, SymbolicExpression};
+use crate::vm::ClarityVersion;
 
 const SIMPLE_TOKENS: &str = "(define-map tokens { account: principal } { balance: uint })
          (define-read-only (my-get-token-balance (account principal))
@@ -603,7 +600,6 @@ fn test_same_function_name() {
 
 #[test]
 fn test_expects() {
-    use crate::vm::analysis::type_check;
     let okay = "(define-map tokens { id: int } { balance: int })
          (define-private (my-get-token-balance)
             (let ((balance (unwrap!
