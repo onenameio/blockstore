@@ -384,6 +384,13 @@ impl BlockMinerThread {
             ))
         })?;
 
+        // Reset the nonce cache, since it is only updated while mining
+        let mut mem_pool = self
+            .config
+            .connect_mempool_db()
+            .expect("Database failure opening mempool");
+        mem_pool.reset_nonce_cache()?;
+
         // now, actually run this tenure
         loop {
             if let Err(e) = self.miner_main_loop(

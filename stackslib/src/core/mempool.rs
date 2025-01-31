@@ -15,7 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::cmp::{self, Ordering};
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, LinkedList, VecDeque};
 use std::hash::Hasher;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
@@ -55,6 +55,7 @@ use crate::chainstate::stacks::{
     Error as ChainstateError, StacksBlock, StacksMicroblock, StacksTransaction, TransactionPayload,
 };
 use crate::clarity_vm::clarity::ClarityConnection;
+use crate::core::nonce_cache::NonceCache;
 use crate::core::{
     ExecutionCost, StacksEpochId, FIRST_BURNCHAIN_CONSENSUS_HASH, FIRST_STACKS_BLOCK_HASH,
 };
@@ -524,10 +525,10 @@ pub struct MemPoolWalkSettings {
     /// either failed to get a cost estimate or has not been estimated yet.
     pub consider_no_estimate_tx_prob: u8,
     /// Size of the nonce cache. This avoids MARF look-ups.
-    pub nonce_cache_size: u64,
+    pub nonce_cache_size: usize,
     /// Size of the candidate cache. These are the candidates that will be retried after each
     /// transaction is mined.
-    pub candidate_retry_cache_size: u64,
+    pub candidate_retry_cache_size: usize,
     /// Types of transactions we'll consider
     pub txs_to_consider: HashSet<MemPoolWalkTxTypes>,
     /// Origins for transactions that we'll consider
@@ -997,128 +998,6 @@ impl<'a> MemPoolTx<'a> {
     }
 }
 
-/// Used to locally cache nonces to avoid repeatedly looking them up in the nonce.
-struct NonceCache {
-    cache: HashMap<StacksAddress, u64>,
-    /// The maximum size that this cache can be.
-    max_cache_size: usize,
-}
-
-impl NonceCache {
-    fn new(nonce_cache_size: u64) -> Self {
-        let max_size: usize = nonce_cache_size
-            .try_into()
-            .expect("Could not cast `nonce_cache_size` as `usize`.");
-        Self {
-            cache: HashMap::new(),
-            max_cache_size: max_size,
-        }
-    }
-
-    /// Get a nonce from the cache.
-    /// First, the RAM cache will be checked for this address.
-    /// If absent, then the `nonces` table will be queried for this address.
-    /// If absent, then the MARF will be queried for this address.
-    ///
-    /// If not in RAM, the nonce will be opportunistically stored to the `nonces` table.  If that
-    /// fails due to lock contention, then the method will return `true` for its second tuple argument.
-    ///
-    /// Returns (nonce, should-try-store-again?)
-    fn get<C>(
-        &mut self,
-        address: &StacksAddress,
-        clarity_tx: &mut C,
-        mempool_db: &DBConn,
-    ) -> (u64, bool)
-    where
-        C: ClarityConnection,
-    {
-        #[cfg(test)]
-        assert!(self.cache.len() <= self.max_cache_size);
-
-        // Check in-memory cache
-        match self.cache.get(address) {
-            Some(nonce) => (*nonce, false),
-            None => {
-                // Check sqlite cache
-                let opt_nonce = match db_get_nonce(mempool_db, address) {
-                    Ok(opt_nonce) => opt_nonce,
-                    Err(e) => {
-                        warn!("error retrieving nonce from mempool db: {}", e);
-                        None
-                    }
-                };
-                match opt_nonce {
-                    Some(nonce) => {
-                        // Copy this into the in-memory cache if there is space
-                        if self.cache.len() < self.max_cache_size {
-                            self.cache.insert(address.clone(), nonce);
-                        }
-                        (nonce, false)
-                    }
-                    None => {
-                        let nonce =
-                            StacksChainState::get_nonce(clarity_tx, &address.clone().into());
-
-                        let should_store_again = match db_set_nonce(mempool_db, address, nonce) {
-                            Ok(_) => false,
-                            Err(e) => {
-                                debug!("error caching nonce to sqlite: {}", e);
-                                true
-                            }
-                        };
-
-                        if self.cache.len() < self.max_cache_size {
-                            self.cache.insert(address.clone(), nonce);
-                        }
-                        (nonce, should_store_again)
-                    }
-                }
-            }
-        }
-    }
-
-    /// Store the (address, nonce) pair to the `nonces` table.
-    /// If storage fails, return false.
-    /// Otherwise return true.
-    fn update(&mut self, address: StacksAddress, value: u64, mempool_db: &DBConn) -> bool {
-        // Sqlite cache
-        let success = match db_set_nonce(mempool_db, &address, value) {
-            Ok(_) => true,
-            Err(e) => {
-                warn!("error caching nonce to sqlite: {}", e);
-                false
-            }
-        };
-
-        // In-memory cache
-        match self.cache.get_mut(&address) {
-            Some(nonce) => {
-                *nonce = value;
-            }
-            None => (),
-        }
-
-        success
-    }
-}
-
-fn db_set_nonce(conn: &DBConn, address: &StacksAddress, nonce: u64) -> Result<(), db_error> {
-    let addr_str = address.to_string();
-    let nonce_i64 = u64_to_sql(nonce)?;
-
-    let sql = "INSERT OR REPLACE INTO nonces (address, nonce) VALUES (?1, ?2)";
-    conn.execute(sql, params![addr_str, nonce_i64])?;
-    Ok(())
-}
-
-fn db_get_nonce(conn: &DBConn, address: &StacksAddress) -> Result<Option<u64>, db_error> {
-    let addr_str = address.to_string();
-
-    let sql = "SELECT nonce FROM nonces WHERE address = ?";
-    query_row(conn, sql, params![addr_str])
-}
-
 #[cfg(test)]
 pub fn db_get_all_nonces(conn: &DBConn) -> Result<Vec<(StacksAddress, u64)>, db_error> {
     let sql = "SELECT * FROM nonces";
@@ -1146,14 +1025,11 @@ struct CandidateCache {
 }
 
 impl CandidateCache {
-    fn new(candidate_retry_cache_size: u64) -> Self {
-        let max_size: usize = candidate_retry_cache_size
-            .try_into()
-            .expect("Could not cast `candidate_retry_cache_size` as usize.");
+    fn new(candidate_retry_cache_size: usize) -> Self {
         Self {
             cache: VecDeque::new(),
             next: VecDeque::new(),
-            max_cache_size: max_size,
+            max_cache_size: candidate_retry_cache_size,
         }
     }
 
@@ -1637,10 +1513,6 @@ impl MemPoolDB {
         let mut candidate_cache = CandidateCache::new(settings.candidate_retry_cache_size);
         let mut nonce_cache = NonceCache::new(settings.nonce_cache_size);
 
-        // set of (address, nonce) to store after the inner loop completes.  This will be done in a
-        // single transaction.  This cannot grow to more than `settings.nonce_cache_size` entries.
-        let mut retry_store = HashMap::new();
-
         let sql = "
              SELECT txid, origin_nonce, origin_address, sponsor_nonce, sponsor_address, fee_rate
              FROM mempool
@@ -1711,29 +1583,11 @@ impl MemPoolDB {
             };
 
             // Check the nonces.
-            let (expected_origin_nonce, retry_store_origin_nonce) =
-                nonce_cache.get(&candidate.origin_address, clarity_tx, self.conn());
-            let (expected_sponsor_nonce, retry_store_sponsor_nonce) =
-                nonce_cache.get(&candidate.sponsor_address, clarity_tx, self.conn());
-
-            // Try storing these nonces later if we failed to do so here, e.g. due to some other
-            // thread holding the write-lock on the mempool DB.
-            if retry_store_origin_nonce {
-                Self::save_nonce_for_retry(
-                    &mut retry_store,
-                    settings.nonce_cache_size,
-                    candidate.origin_address.clone(),
-                    expected_origin_nonce,
-                );
-            }
-            if retry_store_sponsor_nonce {
-                Self::save_nonce_for_retry(
-                    &mut retry_store,
-                    settings.nonce_cache_size,
-                    candidate.sponsor_address.clone(),
-                    expected_sponsor_nonce,
-                );
-            }
+            let mut nonce_conn = self.reopen(false)?;
+            let expected_origin_nonce =
+                nonce_cache.get(&candidate.origin_address, clarity_tx, &mut nonce_conn);
+            let expected_sponsor_nonce =
+                nonce_cache.get(&candidate.sponsor_address, clarity_tx, &mut nonce_conn);
 
             match order_nonces(
                 candidate.origin_nonce,
@@ -1846,34 +1700,17 @@ impl MemPoolDB {
                     match tx_event {
                         TransactionEvent::Success(_) => {
                             // Bump nonces in the cache for the executed transaction
-                            let stored = nonce_cache.update(
+                            nonce_cache.set(
                                 consider.tx.metadata.origin_address,
                                 expected_origin_nonce + 1,
-                                self.conn(),
+                                &mut nonce_conn,
                             );
-                            if !stored {
-                                Self::save_nonce_for_retry(
-                                    &mut retry_store,
-                                    settings.nonce_cache_size,
-                                    consider.tx.metadata.origin_address,
-                                    expected_origin_nonce + 1,
-                                );
-                            }
-
                             if consider.tx.tx.auth.is_sponsored() {
-                                let stored = nonce_cache.update(
+                                nonce_cache.set(
                                     consider.tx.metadata.sponsor_address,
                                     expected_sponsor_nonce + 1,
-                                    self.conn(),
+                                    &mut nonce_conn,
                                 );
-                                if !stored {
-                                    Self::save_nonce_for_retry(
-                                        &mut retry_store,
-                                        settings.nonce_cache_size,
-                                        consider.tx.metadata.sponsor_address,
-                                        expected_sponsor_nonce + 1,
-                                    );
-                                }
                             }
                             output_events.push(tx_event);
                         }
@@ -1907,13 +1744,8 @@ impl MemPoolDB {
         drop(query_stmt_null);
         drop(query_stmt_fee);
 
-        if !retry_store.is_empty() {
-            let tx = self.tx_begin()?;
-            for (address, nonce) in retry_store.into_iter() {
-                nonce_cache.update(address, nonce, &tx);
-            }
-            tx.commit()?;
-        }
+        // Write through the nonce cache to the database
+        nonce_cache.flush(&mut self.db);
 
         debug!(
             "Mempool iteration finished";

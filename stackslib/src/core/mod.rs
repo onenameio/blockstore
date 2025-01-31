@@ -30,6 +30,7 @@ use crate::burnchains::bitcoin::BitcoinNetworkType;
 use crate::burnchains::{Burnchain, Error as burnchain_error};
 use crate::chainstate::burn::ConsensusHash;
 pub mod mempool;
+pub mod nonce_cache;
 
 #[cfg(test)]
 pub mod tests;

@@ -4859,7 +4859,7 @@ fn mempool_walk_test_users_10_rounds_3_cache_size_2000_null_prob_100() {
 fn paramaterized_mempool_walk_test(
     num_users: usize,
     num_rounds: usize,
-    nonce_and_candidate_cache_size: u64,
+    nonce_and_candidate_cache_size: usize,
     consider_no_estimate_tx_prob: u8,
     timeout_ms: u128,
 ) {

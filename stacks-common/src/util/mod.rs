@@ -21,6 +21,7 @@ pub mod macros;
 pub mod chunked_encoding;
 pub mod db;
 pub mod hash;
+pub mod lru_cache;
 pub mod pair;
 pub mod pipe;
 pub mod retry;

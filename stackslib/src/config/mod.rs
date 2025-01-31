@@ -2131,8 +2131,8 @@ pub struct MinerConfig {
     /// Wait for a downloader pass before mining.
     /// This can only be disabled in testing; it can't be changed in the config file.
     pub wait_for_block_download: bool,
-    pub nonce_cache_size: u64,
-    pub candidate_retry_cache_size: u64,
+    pub nonce_cache_size: usize,
+    pub candidate_retry_cache_size: usize,
     pub unprocessed_block_deadline_secs: u64,
     pub mining_key: Option<Secp256k1PrivateKey>,
     /// Amount of time while mining in nakamoto to wait in between mining interim blocks
@@ -2596,8 +2596,8 @@ pub struct MinerConfigFile {
     pub probability_pick_no_estimate_tx: Option<u8>,
     pub block_reward_recipient: Option<String>,
     pub segwit: Option<bool>,
-    pub nonce_cache_size: Option<u64>,
-    pub candidate_retry_cache_size: Option<u64>,
+    pub nonce_cache_size: Option<usize>,
+    pub candidate_retry_cache_size: Option<usize>,
     pub unprocessed_block_deadline_secs: Option<u64>,
     pub mining_key: Option<String>,
     pub wait_on_interim_blocks_ms: Option<u64>,
