@@ -313,14 +313,12 @@ impl StacksNode {
 
     /// Process a state coming from the burnchain, by extracting the validated KeyRegisterOp
     /// and inspecting if a sortition was won.
-    /// `ibd`: boolean indicating whether or not we are in the initial block download
     /// Called from the main thread.
     pub fn process_burnchain_state(
         &mut self,
         config: &Config,
         sortdb: &SortitionDB,
         sort_id: &SortitionId,
-        ibd: bool,
     ) -> Result<(), Error> {
         let ic = sortdb.index_conn();
 
@@ -374,7 +372,6 @@ impl StacksNode {
             "burn_height" => block_height,
             "leader_keys_count" => num_key_registers,
             "block_commits_count" => num_block_commits,
-            "in_initial_block_download?" => ibd,
         );
 
         self.globals.set_last_sortition(block_snapshot.clone());

@@ -400,6 +400,67 @@ impl RelayerThread {
         || !self.config.miner.wait_for_block_download
     }
 
+    /// Compute and set the global IBD flag from a NetworkResult
+    pub fn infer_ibd(&mut self, net_result: &NetworkResult) {
+        let cur_sn = SortitionDB::get_canonical_burn_chain_tip(self.sortdb.conn())
+            .expect("FATAL: failed to query sortition DB");
+
+        // (remember, get_headers_height() is 1-indexed, so account for that with -1)
+        let headers_height = self
+            .bitcoin_controller
+            .get_headers_height()
+            .saturating_sub(1);
+
+        // are we still processing sortitions?
+        let burnchain_ibd = cur_sn.block_height != headers_height;
+
+        // if the highest available tenure is known, then is it the same as the ongoing stacks
+        // tenure?  If so, then we're not IBD. If not, then we're IBD.
+        // If it is not known, then we're not in IBD.
+        let stacks_ibd =
+            if let Some(highest_available_tenure) = net_result.highest_available_tenure.as_ref() {
+                if *highest_available_tenure != net_result.stacks_tip_tenure_id {
+                    // in IBD if the highest available tenure comes after the stacks tip (not always a
+                    // given, because neighbors may not report all the data we have).
+                    let highest_available_tenure_sn = SortitionDB::get_block_snapshot_consensus(
+                        self.sortdb.conn(),
+                        highest_available_tenure,
+                    )
+                    .expect("FATAL: failed to query sortition DB")
+                    .expect("FATAL: highest available tenure not in sortition DB");
+
+                    let stacks_tip_tenure_sn = SortitionDB::get_block_snapshot_consensus(
+                        self.sortdb.conn(),
+                        &net_result.stacks_tip_tenure_id,
+                    )
+                    .expect("FATAL: failed to query sortition DB")
+                    .expect("FATAL: highest available tenure not in sortition DB");
+
+                    highest_available_tenure_sn.block_height > stacks_tip_tenure_sn.block_height
+                } else {
+                    // they're the same, so not in IBD
+                    false
+                }
+            } else {
+                // we don't know the highest available tenure, so assume that we have it (and thus are
+                // not in IBD)
+                false
+            };
+
+        debug!("Relayer: set initial block download inference ({})", burnchain_ibd || stacks_ibd;
+               "burnchain_ibd" => %burnchain_ibd,
+               "stacks_ibd" => %stacks_ibd,
+               "highest_available_tenure" => ?net_result.highest_available_tenure,
+               "stacks_tip_tenure_id" => %net_result.stacks_tip_tenure_id,
+               "cur_sn.block_height" => cur_sn.block_height,
+               "burnchain_headers_height" => headers_height);
+
+        // we're in IBD if we're either still processing sortitions, or the highest available
+        // tenure is different from the highest processed tenure.
+        self.globals
+            .set_initial_block_download(burnchain_ibd || stacks_ibd);
+    }
+
     /// Handle a NetworkResult from the p2p/http state machine.  Usually this is the act of
     /// * preprocessing and storing new blocks and microblocks
     /// * relaying blocks, microblocks, and transacctions
@@ -409,6 +470,7 @@ impl RelayerThread {
             "Relayer: Handle network result (from {})",
             net_result.burn_height
         );
+        self.infer_ibd(&net_result);
 
         if self.last_network_block_height != net_result.burn_height {
             // burnchain advanced; disable mining until we also do a download pass.
@@ -427,7 +489,7 @@ impl RelayerThread {
                 &mut self.sortdb,
                 &mut self.chainstate,
                 &mut self.mempool,
-                self.globals.sync_comms.get_ibd(),
+                self.globals.in_initial_block_download(),
                 Some(&self.globals.coord_comms),
                 Some(&self.event_dispatcher),
             )

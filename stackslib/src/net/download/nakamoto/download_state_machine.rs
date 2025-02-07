@@ -109,6 +109,8 @@ pub struct NakamotoDownloadStateMachine {
     tenure_block_ids: HashMap<NeighborAddress, AvailableTenures>,
     /// Who can serve a given tenure
     pub(crate) available_tenures: HashMap<ConsensusHash, Vec<NeighborAddress>>,
+    /// What is the highest available tenure, if known?
+    pub(crate) highest_available_tenure: Option<ConsensusHash>,
     /// Confirmed tenure download schedule
     pub(crate) tenure_download_schedule: VecDeque<ConsensusHash>,
     /// Unconfirmed tenure download schedule
@@ -140,6 +142,7 @@ impl NakamotoDownloadStateMachine {
             state: NakamotoDownloadState::Confirmed,
             tenure_block_ids: HashMap::new(),
             available_tenures: HashMap::new(),
+            highest_available_tenure: None,
             tenure_download_schedule: VecDeque::new(),
             unconfirmed_tenure_download_schedule: VecDeque::new(),
             tenure_downloads: NakamotoTenureDownloaderSet::new(),
@@ -862,6 +865,14 @@ impl NakamotoDownloadStateMachine {
         self.tenure_download_schedule = schedule;
         self.tenure_block_ids = tenure_block_ids;
         self.available_tenures = available;
+
+        let highest_available_tenure = self.find_highest_available_tenure();
+        self.highest_available_tenure = highest_available_tenure;
+
+        test_debug!(
+            "new highest_available_tenure: {:?}",
+            &self.highest_available_tenure
+        );
     }
 
     /// Update our tenure download state machines, given our download schedule, our peers' tenure
@@ -958,14 +969,14 @@ impl NakamotoDownloadStateMachine {
             return false;
         }
 
-        let (unconfirmed_tenure_opt, confirmed_tenure_opt) = Self::find_unconfirmed_tenure_ids(
+        let (confirmed_tenure_opt, unconfirmed_tenure_opt) = Self::find_unconfirmed_tenure_ids(
             wanted_tenures,
             prev_wanted_tenures,
             available_tenures,
         );
         debug!(
             "Check unconfirmed tenures: highest two available tenures are {:?}, {:?}",
-            &unconfirmed_tenure_opt, &confirmed_tenure_opt
+            &confirmed_tenure_opt, &unconfirmed_tenure_opt
         );
 
         // see if we need any tenures still
@@ -980,11 +991,11 @@ impl NakamotoDownloadStateMachine {
             });
 
             if !is_available_and_processed {
-                let is_unconfirmed = unconfirmed_tenure_opt
+                let is_unconfirmed = confirmed_tenure_opt
                     .as_ref()
                     .map(|ch| *ch == wt.tenure_id_consensus_hash)
                     .unwrap_or(false)
-                    || confirmed_tenure_opt
+                    || unconfirmed_tenure_opt
                         .as_ref()
                         .map(|ch| *ch == wt.tenure_id_consensus_hash)
                         .unwrap_or(false);
@@ -1546,6 +1557,24 @@ impl NakamotoDownloadStateMachine {
 
                 return new_blocks;
             }
+        }
+    }
+
+    /// Find the highest available tenure ID.
+    /// Returns Some(consensus_hash) for the highest tenure available from at least one node.
+    /// Returns None if no tenures are available from any peer.
+    fn find_highest_available_tenure(&self) -> Option<ConsensusHash> {
+        let (t1, t2) = Self::find_unconfirmed_tenure_ids(
+            &self.wanted_tenures,
+            self.prev_wanted_tenures.as_ref().unwrap_or(&vec![]),
+            &self.available_tenures,
+        );
+        if let Some(ch) = t2 {
+            return Some(ch);
+        } else if let Some(ch) = t1 {
+            return Some(ch);
+        } else {
+            return None;
         }
     }
 

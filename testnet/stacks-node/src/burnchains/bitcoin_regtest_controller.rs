@@ -2179,6 +2179,7 @@ impl BurnchainController for BitcoinRegtestController {
         }
     }
 
+    /// NOTE: this is 1-indexed. If there are 10 headers, then this returns 11
     fn get_headers_height(&self) -> u64 {
         let (_, network_id) = self.config.burnchain.get_bitcoin_network();
         let spv_client = SpvClient::new(

@@ -64,10 +64,11 @@ use crate::run_loop::RegisteredKey;
 /// Test flag to stall the miner thread
 pub static TEST_MINE_STALL: LazyLock<TestFlag<bool>> = LazyLock::new(TestFlag::default);
 #[cfg(test)]
+/// Test flag to stall the miner from announcing a block
+pub static TEST_BLOCK_ANNOUNCE_STALL: LazyLock<TestFlag<bool>> = LazyLock::new(TestFlag::default);
+#[cfg(test)]
 /// Test flag to stall block proposal broadcasting
 pub static TEST_BROADCAST_STALL: LazyLock<TestFlag<bool>> = LazyLock::new(TestFlag::default);
-#[cfg(test)]
-pub static TEST_BLOCK_ANNOUNCE_STALL: LazyLock<TestFlag<bool>> = LazyLock::new(TestFlag::default);
 #[cfg(test)]
 pub static TEST_SKIP_P2P_BROADCAST: LazyLock<TestFlag<bool>> = LazyLock::new(TestFlag::default);
 

@@ -129,10 +129,15 @@ impl<T> Globals<T> {
         }
     }
 
-    /// Does the inventory sync watcher think we still need to
-    /// catch up to the chain tip?
+    /// Are we still in the initial block download period?  As in, are there more sortitions to
+    /// process and/or more tenure-start blocks to process?
     pub fn in_initial_block_download(&self) -> bool {
         self.sync_comms.get_ibd()
+    }
+
+    /// Flag whether or not the node is in IBD
+    pub fn set_initial_block_download(&mut self, ibd: bool) {
+        self.sync_comms.set_ibd(ibd);
     }
 
     /// Get the last sortition processed by the relayer thread

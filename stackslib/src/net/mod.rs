@@ -1469,6 +1469,8 @@ pub const DENY_MIN_BAN_DURATION: u64 = 2;
 pub struct NetworkResult {
     /// Stacks chain tip when we began this pass
     pub stacks_tip: StacksBlockId,
+    /// Stacks chain tip's tenure ID when we began this pass
+    pub stacks_tip_tenure_id: ConsensusHash,
     /// PoX ID as it was when we begin downloading blocks (set if we have downloaded new blocks)
     pub download_pox_id: Option<PoxId>,
     /// Network messages we received but did not handle
@@ -1519,15 +1521,22 @@ pub struct NetworkResult {
     pub coinbase_height: u64,
     /// The observed stacks tip height (different in Nakamoto from coinbase height)
     pub stacks_tip_height: u64,
-    /// The consensus hash of the stacks tip (prefixed `rc_` for historical reasons)
+    /// The consensus hash of the highest complete Stacks tenure at the time the canonical
+    /// sortition tip was processed.  Not guaranteed to be the same across all nodes for the same
+    /// given sortition tip.
+    ///
+    /// TODO: remove this and use canonical Stacks tenure ID instead.
     pub rc_consensus_hash: ConsensusHash,
     /// The current StackerDB configs
     pub stacker_db_configs: HashMap<QualifiedContractIdentifier, StackerDBConfig>,
+    /// Highest available tenure, if known
+    pub highest_available_tenure: Option<ConsensusHash>,
 }
 
 impl NetworkResult {
     pub fn new(
         stacks_tip: StacksBlockId,
+        stacks_tip_tenure_id: ConsensusHash,
         num_state_machine_passes: u64,
         num_inv_sync_passes: u64,
         num_download_passes: u64,
@@ -1537,9 +1546,11 @@ impl NetworkResult {
         stacks_tip_height: u64,
         rc_consensus_hash: ConsensusHash,
         stacker_db_configs: HashMap<QualifiedContractIdentifier, StackerDBConfig>,
+        highest_available_tenure: Option<ConsensusHash>,
     ) -> NetworkResult {
         NetworkResult {
             stacks_tip,
+            stacks_tip_tenure_id,
             unhandled_messages: HashMap::new(),
             download_pox_id: None,
             blocks: vec![],
@@ -1567,6 +1578,7 @@ impl NetworkResult {
             stacks_tip_height,
             rc_consensus_hash,
             stacker_db_configs,
+            highest_available_tenure,
         }
     }
 

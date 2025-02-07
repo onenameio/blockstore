@@ -151,9 +151,18 @@ impl PoxSyncWatchdog {
         ibd
     }
 
-    /// Wait until the next PoX anchor block arrives.
-    /// We know for a fact that they all exist for Epochs 2.5 and earlier, in both mainnet and
-    /// testnet.
+    /// This code path is only used for Epoch 2.5 and earlier.
+    ///
+    /// Wait to poll the burnchain for its height, and compute the maximum height up to which we
+    /// should process sortitions.
+    ///
+    /// This code used to be much more elaborate, and would use a set of heuristics to determine
+    /// whether or not there could be an outstanding PoX anchor block to try waiting for before
+    /// attempting to process sortitions without it.  However, we now know for a fact that in epoch
+    /// 2.5 and earlier, in both mainnet and testnet, there are no missing anchor blocks, so this
+    /// code instead just sleeps for `[burnchain].poll_time_secs` and computes the burn block height of
+    /// the start of the first reward cycle for which we don't yet have an anchor block.
+    ///
     /// Return (still-in-ibd?, maximum-burnchain-sync-height) on success.
     pub fn pox_sync_wait(
         &mut self,
@@ -186,7 +195,6 @@ impl PoxSyncWatchdog {
                 .max(burnchain_height)
         };
 
-        self.relayer_comms.set_ibd(ibbd);
         if !self.unconditionally_download {
             self.relayer_comms
                 .interruptable_sleep(self.steady_state_burnchain_sync_interval)?;

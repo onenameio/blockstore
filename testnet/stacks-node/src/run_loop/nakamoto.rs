@@ -447,7 +447,7 @@ impl RunLoop {
         let (relay_send, relay_recv) = sync_channel(RELAYER_MAX_BUFFER);
 
         // set up globals so other subsystems can instantiate off of the runloop state.
-        let globals = Globals::new(
+        let mut globals = Globals::new(
             coordinator_senders,
             self.get_miner_status(),
             relay_send,
@@ -523,7 +523,15 @@ impl RunLoop {
             burnchain.get_headers_height() - 1,
         );
 
-        debug!("Runloop: Begin main runloop starting a burnchain block {sortition_db_height}");
+        let sortition_height =
+            SortitionDB::get_canonical_burn_chain_tip(burnchain.sortdb_ref().conn())
+                .map(|snapshot| snapshot.block_height)
+                .unwrap_or(0);
+
+        let initial_ibd = sortition_height < burnchain.get_headers_height() - 1;
+
+        debug!("Runloop: Begin main runloop starting a burnchain block {sortition_db_height}. IBD={initial_ibd}");
+        globals.set_initial_block_download(initial_ibd);
 
         let mut last_tenure_sortition_height = 0;
         let mut poll_deadline = 0;
@@ -545,18 +553,7 @@ impl RunLoop {
             }
 
             let remote_chain_height = burnchain.get_headers_height() - 1;
-
-            // wait for the p2p state-machine to do at least one pass
-            debug!("Runloop: Wait until Stacks block downloads reach a quiescent state before processing more burnchain blocks"; "remote_chain_height" => remote_chain_height, "local_chain_height" => burnchain_height);
-
-            // TODO: for now, we just set initial block download false.
-            //   I think that the sync watchdog probably needs to change a fair bit
-            //   for nakamoto. There may be some opportunity to refactor this runloop
-            //   as well (e.g., the `mine_start` should be integrated with the
-            //   watchdog so that there's just one source of truth about ibd),
-            //   but I think all of this can be saved for post-neon work.
-            let ibd = false;
-            self.pox_watchdog_comms.set_ibd(ibd);
+            let ibd = globals.in_initial_block_download();
 
             // calculate burnchain sync percentage
             let percent: f64 = if remote_chain_height > 0 {
@@ -648,7 +645,6 @@ impl RunLoop {
                             self.config(),
                             burnchain.sortdb_mut(),
                             sortition_id,
-                            ibd,
                         ) {
                             // relayer errored, exit.
                             error!("Runloop: Block relayer and miner errored, exiting."; "err" => ?e);
@@ -693,7 +689,7 @@ impl RunLoop {
                 remote_chain_height,
             );
 
-            debug!("Runloop: Advance target burnchain block height from {target_burnchain_block_height} to {next_target_burnchain_block_height} (sortition height {sortition_db_height})");
+            debug!("Runloop: Advance target burnchain block height from {target_burnchain_block_height} to {next_target_burnchain_block_height} (sortition height {sortition_db_height}, ibd={ibd})");
             target_burnchain_block_height = next_target_burnchain_block_height;
 
             if sortition_db_height >= burnchain_height && !ibd {
@@ -725,6 +721,11 @@ impl RunLoop {
                         globals.raise_initiative("runloop-synced".to_string());
                     }
                 }
+            } else {
+                info!("Runloop: still synchronizing";
+                    "sortition_db_height" => sortition_db_height,
+                    "burnchain_height" => burnchain_height,
+                    "ibd" => ibd);
             }
         }
     }

@@ -235,7 +235,7 @@ impl PeerThread {
         fee_estimator: Option<&Box<dyn FeeEstimator>>,
     ) -> bool {
         // initial block download?
-        let ibd = self.globals.sync_comms.get_ibd();
+        let ibd = self.globals.in_initial_block_download();
         let download_backpressure = self
             .results_with_data
             .as_ref()

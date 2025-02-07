@@ -113,9 +113,11 @@ pub struct NakamotoTenureDownloaderSet {
     /// The set of tenures that have been successfully downloaded (but possibly not yet stored or
     /// processed)
     pub(crate) completed_tenures: HashSet<CompletedTenure>,
-    /// Number of times a tenure download was attempted
+    /// Number of times a tenure download was attempted.  This counter is incremented before the
+    /// downloader starts
     pub(crate) attempted_tenures: HashMap<ConsensusHash, u64>,
-    /// Number of times a tenure download failed
+    /// Number of times a tenure download failed.  This counter is incremented after the downloader
+    /// finishes in an error state.
     pub(crate) attempt_failed_tenures: HashMap<ConsensusHash, u64>,
     /// Peers that should be deprioritized because they're dead (maps to when they can be used
     /// again)
@@ -451,7 +453,13 @@ impl NakamotoTenureDownloaderSet {
                 continue;
             };
             if tenure_info.processed {
-                // we already have this tenure
+                // we already have tried to download this tenure,
+                // but do remove it from `self.completed_tenures` in order to (1) avoid a memory
+                // leak, and (2) account for the chance that the end-block has changed due to a
+                // Bitcoin reorg.  This way, a subsequent call with the same tenure in `schedule`
+                // will succeed in starting a downloader.  Since `schedule` is derived from on-disk
+                // state, the only way a "completed" tenure will show up in `schedule` again is if
+                // it is later determined that the tenure we stored is incomplete or not canonical.
                 debug!("Already have processed tenure {ch}");
                 self.completed_tenures
                     .remove(&CompletedTenure::from(tenure_info));

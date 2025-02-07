@@ -954,6 +954,7 @@ fn forked_tenure_testing(
         |config| {
             // make the duration long enough that the reorg attempt will definitely be accepted
             config.first_proposal_burn_block_timing = proposal_limit;
+
             // don't allow signers to post signed blocks (limits the amount of fault injection we
             // need)
             TEST_SKIP_BLOCK_BROADCAST.set(true);
@@ -1097,13 +1098,13 @@ fn forked_tenure_testing(
     );
     assert_ne!(tip_b, tip_a);
 
+    info!("Starting Tenure C.");
     if !expect_tenure_c {
+        info!("Process Tenure B");
         // allow B to process, so it'll be distinct from C
         TEST_BLOCK_ANNOUNCE_STALL.set(false);
         sleep_ms(1000);
     }
-
-    info!("Starting Tenure C.");
 
     // Submit a block commit op for tenure C
     let commits_before = commits_submitted.load(Ordering::SeqCst);
@@ -1124,7 +1125,6 @@ fn forked_tenure_testing(
         || {
             let commits_count = commits_submitted.load(Ordering::SeqCst);
             if commits_count > commits_before {
-                // now allow block B to process if it hasn't already.
                 TEST_BLOCK_ANNOUNCE_STALL.set(false);
             }
             let rejected_count = rejected_blocks.load(Ordering::SeqCst);
@@ -1173,6 +1173,8 @@ fn forked_tenure_testing(
         );
         panic!();
     });
+
+    coord_channel.lock().unwrap().announce_new_stacks_block();
 
     // allow blocks B and C to be processed
     sleep_ms(1000);

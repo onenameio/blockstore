@@ -5205,7 +5205,7 @@ impl PeerNetwork {
         poll_timeout: u64,
         handler_args: &RPCHandlerArgs,
     ) -> Result<NetworkResult, net_error> {
-        debug!(">>>>>>>>>>>>>>>>>>>>>>> Begin Network Dispatch (poll for {}) >>>>>>>>>>>>>>>>>>>>>>>>>>>>", poll_timeout);
+        debug!(">>>>>>>>>>>>>>>>>>>>>>> Begin Network Dispatch (poll for {}, ibd={}) >>>>>>>>>>>>>>>>>>>>>>>>>>>>", poll_timeout, ibd);
         let mut poll_states = match self.network {
             None => {
                 debug!("{:?}: network not connected", &self.local_peer);
@@ -5244,6 +5244,7 @@ impl PeerNetwork {
         );
         let mut network_result = NetworkResult::new(
             self.stacks_tip.block_id(),
+            self.stacks_tip.consensus_hash.clone(),
             self.num_state_machine_passes,
             self.num_inv_sync_passes,
             self.num_downloader_passes,
@@ -5253,6 +5254,10 @@ impl PeerNetwork {
             self.stacks_tip.height,
             self.chain_view.rc_consensus_hash.clone(),
             self.get_stacker_db_configs_owned(),
+            self.block_downloader_nakamoto
+                .as_ref()
+                .map(|dler| dler.highest_available_tenure.clone())
+                .flatten(),
         );
 
         network_result.consume_unsolicited(unsolicited_buffered_messages);
