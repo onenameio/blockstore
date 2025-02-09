@@ -26,6 +26,7 @@ pub mod pipe;
 pub mod retry;
 pub mod secp256k1;
 pub mod uint;
+pub mod versions;
 pub mod vrf;
 
 use std::fs::File;

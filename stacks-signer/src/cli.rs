@@ -248,6 +248,11 @@ pub struct MonitorSignersArgs {
     pub max_age: u64,
 }
 
+#[derive(Parser, Debug, Clone)]
+/// Arguments for the Version command
+pub struct VersionArgs {
+}
+
 #[derive(Clone, Debug, PartialEq)]
 /// Wrapper around `Pox4SignatureTopic` to implement `ValueEnum`
 pub struct StackingSignatureMethod(Pox4SignatureTopic);

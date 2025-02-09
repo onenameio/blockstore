@@ -1,0 +1,6 @@
+stacks_node: 3.0.0.0
+stacks_signer: 3.0.0.0.2
+blockstack_cli: 3.0.0.0.2
+clarity_cli: 3.0.0.0.2
+relay_server: 3.0.0.0.2
+stacks_inspect: 3.0.0.0.2

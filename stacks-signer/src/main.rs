@@ -199,6 +199,7 @@ fn handle_monitor_signers(args: MonitorSignersArgs) {
 }
 
 fn main() {
+
     let cli = Cli::parse();
 
     tracing_subscriber::registry()
