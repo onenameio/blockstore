@@ -17,6 +17,7 @@ and this project adheres to the versioning scheme outlined in the [README.md](RE
 - Signers no longer view any block proposal by a miner in their DB as indicative of valid miner activity.
 - Various index improvements to the signer's database to improve performance.
 - Add new reject codes to the signer response for better visibility into why a block was rejected.
+- When allowing a reorg within the `reorg_attempts_activity_timeout_ms`, the signer will now watch the responses from other signers and if >30% of them reject this reorg attempt, then the signer will mark the miner as invalid, reject further attempts to reorg and allowing the previous miner to extend their tenure.
 
 ## [3.1.0.0.5.0]
 
