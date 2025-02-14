@@ -131,6 +131,8 @@ pub struct ProposalEvalConfig {
     pub tenure_last_block_proposal_timeout: Duration,
     /// How much idle time must pass before allowing a tenure extend
     pub tenure_idle_timeout: Duration,
+    /// How much buffer to add to the tenure idle timeout sent to miners to account for clock skew
+    pub tenure_idle_timeout_buffer: Duration,
     /// Time following the last block of the previous tenure's global acceptance that a signer will consider an attempt by
     /// the new miner to reorg it as valid towards miner activity
     pub reorg_attempts_activity_timeout: Duration,
@@ -144,6 +146,7 @@ impl From<&SignerConfig> for ProposalEvalConfig {
             tenure_last_block_proposal_timeout: value.tenure_last_block_proposal_timeout,
             tenure_idle_timeout: value.tenure_idle_timeout,
             reorg_attempts_activity_timeout: value.reorg_attempts_activity_timeout,
+            tenure_idle_timeout_buffer: value.tenure_idle_timeout_buffer,
         }
     }
 }

@@ -1,4 +1,4 @@
-FROM rust:alpine as build
+FROM rust:bookworm AS build
 
 ARG STACKS_NODE_VERSION="No Version Info"
 ARG GIT_BRANCH='No Branch Info'
@@ -8,15 +8,13 @@ WORKDIR /src
 
 COPY . .
 
-RUN apk add --no-cache musl-dev
-
 RUN mkdir /out
 
 RUN cargo build --features monitoring_prom,slog_json --release
 
 RUN cp target/release/stacks-node /out
 
-FROM alpine
+FROM debian:bookworm-slim
 
 COPY --from=build /out/ /bin/
 

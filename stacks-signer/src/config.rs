@@ -35,13 +35,16 @@ use stacks_common::util::hash::Hash160;
 use crate::client::SignerSlotID;
 
 const EVENT_TIMEOUT_MS: u64 = 5000;
-const BLOCK_PROPOSAL_TIMEOUT_MS: u64 = 14_400_000;
+const BLOCK_PROPOSAL_TIMEOUT_MS: u64 = 120_000;
 const BLOCK_PROPOSAL_VALIDATION_TIMEOUT_MS: u64 = 120_000;
 const DEFAULT_FIRST_PROPOSAL_BURN_BLOCK_TIMING_SECS: u64 = 60;
 const DEFAULT_TENURE_LAST_BLOCK_PROPOSAL_TIMEOUT_SECS: u64 = 30;
 const DEFAULT_DRY_RUN: bool = false;
 const TENURE_IDLE_TIMEOUT_SECS: u64 = 120;
 const DEFAULT_REORG_ATTEMPTS_ACTIVITY_TIMEOUT_MS: u64 = 200_000;
+/// Default number of seconds to add to the tenure extend time, after computing the idle timeout,
+/// to allow for clock skew between the signer and the miner
+const DEFAULT_TENURE_IDLE_TIMEOUT_BUFFER_SECS: u64 = 2;
 
 #[derive(thiserror::Error, Debug)]
 /// An error occurred parsing the provided configuration
@@ -162,6 +165,9 @@ pub struct SignerConfig {
     pub block_proposal_validation_timeout: Duration,
     /// How much idle time must pass before allowing a tenure extend
     pub tenure_idle_timeout: Duration,
+    /// Amount of buffer time to add to the tenure extend time sent to miners to allow for
+    /// clock skew
+    pub tenure_idle_timeout_buffer: Duration,
     /// The maximum age of a block proposal in seconds that will be processed by the signer
     pub block_proposal_max_age_secs: u64,
     /// Time following the last block of the previous tenure's global acceptance that a signer will consider an attempt by
@@ -207,6 +213,9 @@ pub struct GlobalConfig {
     pub block_proposal_validation_timeout: Duration,
     /// How much idle time must pass before allowing a tenure extend
     pub tenure_idle_timeout: Duration,
+    /// Amount of buffer time to add to the tenure extend time sent to miners to allow for
+    /// clock skew
+    pub tenure_idle_timeout_buffer: Duration,
     /// The maximum age of a block proposal that will be processed by the signer
     pub block_proposal_max_age_secs: u64,
     /// Time following the last block of the previous tenure's global acceptance that a signer will consider an attempt by
@@ -251,6 +260,9 @@ struct RawConfigFile {
     pub block_proposal_validation_timeout_ms: Option<u64>,
     /// How much idle time (in seconds) must pass before a tenure extend is allowed
     pub tenure_idle_timeout_secs: Option<u64>,
+    /// Number of seconds of buffer to add to the tenure extend time sent to miners to allow for
+    /// clock skew
+    pub tenure_idle_timeout_buffer_secs: Option<u64>,
     /// The maximum age of a block proposal (in secs) that will be processed by the signer.
     pub block_proposal_max_age_secs: Option<u64>,
     /// Time (in millisecs) following a block's global acceptance that a signer will consider an attempt by a miner
@@ -367,6 +379,12 @@ impl TryFrom<RawConfigFile> for GlobalConfig {
 
         let dry_run = raw_data.dry_run.unwrap_or(DEFAULT_DRY_RUN);
 
+        let tenure_idle_timeout_buffer = Duration::from_secs(
+            raw_data
+                .tenure_idle_timeout_buffer_secs
+                .unwrap_or(DEFAULT_TENURE_IDLE_TIMEOUT_BUFFER_SECS),
+        );
+
         Ok(Self {
             node_host: raw_data.node_host,
             endpoint,
@@ -386,6 +404,7 @@ impl TryFrom<RawConfigFile> for GlobalConfig {
             block_proposal_max_age_secs,
             reorg_attempts_activity_timeout,
             dry_run,
+            tenure_idle_timeout_buffer,
         })
     }
 }

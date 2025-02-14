@@ -101,7 +101,7 @@ use crate::nakamoto_node::miner::{
     TEST_BLOCK_ANNOUNCE_STALL, TEST_BROADCAST_PROPOSAL_STALL, TEST_MINE_STALL,
     TEST_P2P_BROADCAST_SKIP,
 };
-use crate::nakamoto_node::relayer::{RelayerThread, TEST_MINER_THREAD_STALL};
+use crate::nakamoto_node::relayer::TEST_MINER_THREAD_STALL;
 use crate::neon::{Counters, RunLoopCounter};
 use crate::operations::BurnchainOpSigner;
 use crate::run_loop::boot_nakamoto;
@@ -5112,6 +5112,9 @@ fn forked_tenure_is_ignored() {
         &[EventKeyType::AnyEvent, EventKeyType::MinedBlocks],
     );
 
+    let miner_sk = naka_conf.miner.mining_key.unwrap();
+    let miner_pk = StacksPublicKey::from_private(&miner_sk);
+
     let mut btcd_controller = BitcoinCoreController::new(naka_conf.clone());
     btcd_controller
         .start_bitcoind()
@@ -5189,7 +5192,7 @@ fn forked_tenure_is_ignored() {
 
     // For the next tenure, submit the commit op but do not allow any stacks blocks to be broadcasted.
     // Stall the miner thread; only wait until the number of submitted commits increases.
-    TEST_BROADCAST_PROPOSAL_STALL.set(true);
+    TEST_BROADCAST_PROPOSAL_STALL.set(vec![miner_pk]);
     TEST_BLOCK_ANNOUNCE_STALL.set(true);
 
     let blocks_before = mined_blocks.load(Ordering::SeqCst);
@@ -5208,7 +5211,7 @@ fn forked_tenure_is_ignored() {
     // Unpause the broadcast of Tenure B's block, do not submit commits, and do not allow blocks to
     // be processed
     test_skip_commit_op.set(true);
-    TEST_BROADCAST_PROPOSAL_STALL.set(false);
+    TEST_BROADCAST_PROPOSAL_STALL.set(vec![]);
 
     // Wait for a stacks block to be broadcasted.
     // However, it will not be processed.
@@ -6575,6 +6578,7 @@ fn signer_chainstate() {
             block_proposal_timeout: Duration::from_secs(100),
             tenure_last_block_proposal_timeout: Duration::from_secs(30),
             tenure_idle_timeout: Duration::from_secs(300),
+            tenure_idle_timeout_buffer: Duration::from_secs(2),
             reorg_attempts_activity_timeout: Duration::from_secs(30),
         };
         let mut sortitions_view =
@@ -6699,6 +6703,7 @@ fn signer_chainstate() {
             block_proposal_timeout: Duration::from_secs(100),
             tenure_last_block_proposal_timeout: Duration::from_secs(30),
             tenure_idle_timeout: Duration::from_secs(300),
+            tenure_idle_timeout_buffer: Duration::from_secs(2),
             reorg_attempts_activity_timeout: Duration::from_secs(30),
         };
         let burn_block_height = SortitionDB::get_canonical_burn_chain_tip(sortdb.conn())
@@ -6774,6 +6779,7 @@ fn signer_chainstate() {
         block_proposal_timeout: Duration::from_secs(100),
         tenure_last_block_proposal_timeout: Duration::from_secs(30),
         tenure_idle_timeout: Duration::from_secs(300),
+        tenure_idle_timeout_buffer: Duration::from_secs(2),
         reorg_attempts_activity_timeout: Duration::from_secs(30),
     };
     let mut sortitions_view = SortitionsView::fetch_view(proposal_conf, &signer_client).unwrap();
@@ -10743,8 +10749,6 @@ fn test_tenure_extend_from_flashblocks() {
     signer_test.boot_to_epoch_3();
 
     let naka_conf = signer_test.running_nodes.conf.clone();
-    let mining_key = naka_conf.miner.mining_key.clone().unwrap();
-    let mining_key_pkh = Hash160::from_node_public_key(&StacksPublicKey::from_private(&mining_key));
 
     let http_origin = format!("http://{}", &naka_conf.node.rpc_bind);
     let btc_regtest_controller = &mut signer_test.running_nodes.btc_regtest_controller;
@@ -10760,13 +10764,6 @@ fn test_tenure_extend_from_flashblocks() {
 
     let burnchain = naka_conf.get_burnchain();
     let sortdb = burnchain.open_sortition_db(true).unwrap();
-    let (mut chainstate, _) = StacksChainState::open(
-        naka_conf.is_mainnet(),
-        naka_conf.burnchain.chain_id,
-        &naka_conf.get_chainstate_path_str(),
-        None,
-    )
-    .unwrap();
 
     for _ in 0..3 {
         next_block_and_mine_commit(btc_regtest_controller, 60, &naka_conf, &counters).unwrap();
@@ -10874,28 +10871,6 @@ fn test_tenure_extend_from_flashblocks() {
     assert_eq!(new_canonical_stacks_tip_ch, canonical_stacks_tip_ch);
     // the sortition that elected the ongoing tenure is not the canonical sortition tip
     assert_ne!(sort_tip.consensus_hash, election_tip.consensus_hash);
-
-    // we can, however, continue the tenure
-    let canonical_stacks_tip = RelayerThread::can_continue_tenure(
-        &sortdb,
-        &mut chainstate,
-        sort_tip.consensus_hash.clone(),
-        Some(mining_key_pkh.clone()),
-    )
-    .unwrap()
-    .unwrap();
-    assert_eq!(canonical_stacks_tip, election_tip);
-
-    // if we didn't win the last block -- tantamount to the sortition winner miner key being
-    // different -- then we can't continue the tenure.
-    assert!(RelayerThread::can_continue_tenure(
-        &sortdb,
-        &mut chainstate,
-        sort_tip.consensus_hash.clone(),
-        Some(Hash160([0x11; 20]))
-    )
-    .unwrap()
-    .is_none());
 
     let mut accounts_before = vec![];
     let mut sent_txids = vec![];

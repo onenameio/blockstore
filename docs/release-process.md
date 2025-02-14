@@ -16,10 +16,10 @@
 Normal releases in this repository that add new features are released on a monthly schedule.
 The currently staged changes for such releases are in the [develop branch](https://github.com/stacks-network/stacks-core/tree/develop).
 It is generally safe to run a `stacks-node` from that branch, though it has received less rigorous testing than release tags or the [master branch](https://github.com/stacks-network/stacks-core/tree/master).
-If bugs are found in the `develop` branch, please do [report them as issues](https://github.com/stacks-network/stacks-core/issues) on this repository.
+If bugs are found in the `develop` branch, please do [report them as issues](https://github.com/stacks-network/stacks-core/issues) in this repository.
 
 For fixes that impact the correct functioning or liveness of the network, _hotfixes_ may be issued.
-These are patches to the main branch which are backported to the develop branch after merging.
+These are patches to the default branch which are backported to the develop branch after merging.
 These hotfixes are categorized by priority according to the following rubric:
 
 - **High Priority**. Any fix for an issue that could deny service to the network as a whole, e.g., an issue where a particular kind of invalid transaction would cause nodes to stop processing requests or shut down unintentionally. Any fix for an issue that could cause honest miners to produce invalid blocks.
@@ -58,27 +58,33 @@ The timing of the next Stacking cycle can be found [here](https://stx.eco/dao/to
 
    - A label should be applied to each such issue/PR as `X.Y.Z.A.n-blocker`.
 
-3. Since development is continuing in the `develop` branch, it may be necessary to cherry-pick some commits into the release branch.
+3. Perform a [block-replay](../contrib/tools/block-replay.sh) using an existing chainstate, or sync from genesis
+
+4. Since development is continuing in the `develop` branch, it may be necessary to cherry-pick some commits into the release branch or open a PR against the release branch.
 
    - Create a feature branch from `release/X.Y.Z.A.n`, ex: `feat/X.Y.Z.A.n-pr_number`.
    - Add cherry-picked commits to the `feat/X.Y.Z.A.n-pr_number` branch
    - Merge `feat/X.Y.Z.A.n-pr_number` into `release/X.Y.Z.A.n`.
 
-4. Open a PR to update the [CHANGELOG](../CHANGELOG.md) in the `release/X.Y.Z.A.n` branch.
+5. If necessary, open a PR to update the [CHANGELOG](../CHANGELOG.md) in the `release/X.Y.Z.A.n` branch.
 
    - Create a chore branch from `release/X.Y.Z.A.n`, ex: `chore/X.Y.Z.A.n-changelog`.
+   - Update [versions.toml](../versions.toml) to match this release:
+     - Update the `stacks_node_version` string to match this release version.
+     - Update the `stacks_signer_version` string to match `stacks_node_version`, with an appending `0` for this release version.
    - Add summaries of all Pull Requests to the `Added`, `Changed` and `Fixed` sections.
-   - Update the `stacks_node_version` string in [versions.toml](../versions.toml) to match this release.
 
      - Pull requests merged into `develop` can be found [here](https://github.com/stacks-network/stacks-core/pulls?q=is%3Apr+is%3Aclosed+base%3Adevelop+sort%3Aupdated-desc).
 
        **Note**: GitHub does not allow sorting by _merge time_, so, when sorting by some proxy criterion, some care should be used to understand which PR's were _merged_ after the last release.
 
-5. Once `chore/X.Y.Z.A.n-changelog` has merged, a build may be started by manually triggering the [`CI` workflow](../.github/workflows/ci.yml) against the `release/X.Y.Z.A.n` branch.
+   - This PR must be merged before continuing to the next steps
 
-6. Once the release candidate has been built and binaries are available, ecosystem participants shall be notified to test the tagged release on various staging infrastructure.
+6. A build may be started by manually triggering the [`CI` workflow](../.github/workflows/ci.yml) against the `release/X.Y.Z.A.n` branch.
 
-7. The release candidate will test that it successfully syncs with the current chain from genesis both in testnet and mainnet.
+   - **Note**: A `stacks-signer` release will also be produced when this workflow is run
+
+7. Once the release candidate has been built and binaries are available, ecosystem participants shall be notified to test the tagged release on various staging infrastructure.
 
 8. If bugs or issues emerge from the rollout on staging infrastructure, the release will be delayed until those regressions are resolved.
 
@@ -90,7 +96,7 @@ The timing of the next Stacking cycle can be found [here](https://stx.eco/dao/to
 
 10. Finally, the following merges will happen to complete the release process:
     - Release branch `release/X.Y.Z.A.n` will be merged into the `master` branch.
-    - Then, `master` will be merged into `develop`.
+    - Then, `release/X.Y.Z.A.n` will be merged into `develop`.
 
 ## Consensus Breaking Release Process
 

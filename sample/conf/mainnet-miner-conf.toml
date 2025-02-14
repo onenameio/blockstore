@@ -4,7 +4,6 @@ rpc_bind = "127.0.0.1:20443"
 p2p_bind = "127.0.0.1:20444"
 prometheus_bind = "127.0.0.1:9153"
 seed = "<YOUR_SEED>"
-local_peer_seed = "<YOUR_SEED>"
 miner = true
 mine_microblocks = false # Disable microblocks (ref: https://github.com/stacks-network/stacks-core/pull/4561 )
 

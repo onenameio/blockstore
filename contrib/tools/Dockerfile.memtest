@@ -1,6 +1,6 @@
 FROM rust:latest
 
-WORKDIR /src/blockstack-core
+WORKDIR /src/stacks-core
 
 RUN apt-get update
 RUN apt-get install valgrind heaptrack -y

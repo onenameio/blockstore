@@ -1,0 +1,14 @@
+[node]
+# working_dir = "/dir/to/save/chainstate" # defaults to: /tmp/stacks-node-[0-9]*
+rpc_bind = "0.0.0.0:20443"
+p2p_bind = "0.0.0.0:20444"
+prometheus_bind = "0.0.0.0:9153" 
+
+[burnchain]
+mode = "mocknet"
+
+# Used for sending events to a local stacks-blockchain-api service
+# [[events_observer]]
+# endpoint = "localhost:3700"
+# events_keys = ["*"]
+

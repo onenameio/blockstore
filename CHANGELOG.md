@@ -28,12 +28,14 @@ and this project adheres to the versioning scheme outlined in the [README.md](RE
 ### Added
 
 - Add miner configuration option `tenure_extend_cost_threshold` to specify the percentage of the tenure budget that must be spent before a time-based tenure extend is attempted
+- Add miner configuration option `tenure_extend_wait_timeout_ms` to specify the time to wait before trying to continue a tenure because the next miner did not produce blocks
 
 ### Changed
 
 - Miner will include other transactions in blocks with tenure extend transactions (#5760)
 - Add `block_rejection_timeout_steps` to miner configuration for defining rejections-based timeouts while waiting for signers response (#5705)
 - Miner will not issue a tenure extend until at least half of the block budget has been spent (#5757)
+- Miner will issue a tenure extend if the incoming miner has failed to produce a block (#5729)
 
 ### Fixed
 

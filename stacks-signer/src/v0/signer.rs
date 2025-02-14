@@ -361,7 +361,9 @@ impl Signer {
             block.header.signer_signature_hash(),
             signature,
             self.signer_db.calculate_tenure_extend_timestamp(
-                self.proposal_config.tenure_idle_timeout,
+                self.proposal_config
+                    .tenure_idle_timeout
+                    .saturating_add(self.proposal_config.tenure_idle_timeout_buffer),
                 block,
                 true,
             ),
@@ -379,7 +381,9 @@ impl Signer {
             &self.private_key,
             self.mainnet,
             self.signer_db.calculate_tenure_extend_timestamp(
-                self.proposal_config.tenure_idle_timeout,
+                self.proposal_config
+                    .tenure_idle_timeout
+                    .saturating_add(self.proposal_config.tenure_idle_timeout_buffer),
                 block,
                 false,
             ),
@@ -825,7 +829,9 @@ impl Signer {
             &self.private_key,
             self.mainnet,
             self.signer_db.calculate_tenure_extend_timestamp(
-                self.proposal_config.tenure_idle_timeout,
+                self.proposal_config
+                    .tenure_idle_timeout
+                    .saturating_add(self.proposal_config.tenure_idle_timeout_buffer),
                 &block_info.block,
                 false,
             ),

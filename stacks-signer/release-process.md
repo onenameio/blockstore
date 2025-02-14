@@ -63,7 +63,7 @@ The timing of the next Stacking cycle can be found [here](https://stx.eco/dao/to
    - Add cherry-picked commits to the `feat/signer-X.Y.Z.A.n.x-pr_number` branch
    - Merge `feat/signer-X.Y.Z.A.n.x-pr_number` into `release/signer-X.Y.Z.A.n.x`.
 
-4. Open a PR to update the [CHANGELOG](./CHANGELOG.md) in the `release/signer-X.Y.Z.A.n.x` branch.
+4. If necessary, open a PR to update the [CHANGELOG](./CHANGELOG.md) in the `release/signer-X.Y.Z.A.n.x` branch.
 
    - Create a chore branch from `release/signer-X.Y.Z.A.n.x`, ex: `chore/signer-X.Y.Z.A.n.x-changelog`.
    - Add summaries of all Pull Requests to the `Added`, `Changed` and `Fixed` sections.
@@ -86,5 +86,5 @@ The timing of the next Stacking cycle can be found [here](https://stx.eco/dao/to
    Announcements will then be shared in the `#stacks-core-devs` channel in the Stacks Discord, as well as the [mailing list](https://groups.google.com/a/stacks.org/g/announce).
 
 9. Finally, the following merges will happen to complete the release process:
-   - Release branch `release/signer-X.Y.Z.A.n.x` will be merged into the `master` branch.
-   - Then, `master` will be merged into `develop`.
+   - Release branch `release/X.Y.Z.A.n` will be merged into the `master` branch.
+   - Then, `release/X.Y.Z.A.n` will be merged into `develop`.

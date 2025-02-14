@@ -314,6 +314,7 @@ impl<Signer: SignerTrait<T>, T: StacksMessageCodec + Clone + Send + Debug> RunLo
             tenure_last_block_proposal_timeout: self.config.tenure_last_block_proposal_timeout,
             block_proposal_validation_timeout: self.config.block_proposal_validation_timeout,
             tenure_idle_timeout: self.config.tenure_idle_timeout,
+            tenure_idle_timeout_buffer: self.config.tenure_idle_timeout_buffer,
             block_proposal_max_age_secs: self.config.block_proposal_max_age_secs,
             reorg_attempts_activity_timeout: self.config.reorg_attempts_activity_timeout,
         }))

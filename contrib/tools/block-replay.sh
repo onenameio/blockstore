@@ -375,7 +375,6 @@ usage() {
 	echo "    ${COLBOLD}${0}${COLRESET}"
 	echo "        ${COLYELLOW}--testing${COLRESET}: only check a small number of blocks"
 	echo "        ${COLYELLOW}-t|--terminal${COLRESET}: more terminal friendly output"
-	echo "        ${COLYELLOW}-u|--upload${COLRESET}: upload results to s3"
 	echo "        ${COLYELLOW}-n|--network${COLRESET}: run block replay against specific network (default: mainnet)"
 	echo "        ${COLYELLOW}-b|--branch${COLRESET}: branch of stacks-core to build stacks-inspect from (default: develop)"
 	echo "        ${COLYELLOW}-r|--reserved${COLRESET}: how many cpu cores to reserve for system tasks"
@@ -387,7 +386,7 @@ usage() {
 
 
 ## install missing dependencies
-for cmd in curl tmux git wget tar gzip grep cargo pgrep aws; do
+for cmd in curl tmux git wget tar gzip grep cargo pgrep; do
 	command -v "${cmd}" >/dev/null 2>&1 || {
 		case "${cmd}" in
 			"cargo")
@@ -395,9 +394,6 @@ for cmd in curl tmux git wget tar gzip grep cargo pgrep aws; do
 				;;
 			"pgrep")
 				package="procps"
-				;;
-			"aws")
-				package="awscli"
 				;;
 			*)
 				package="${cmd}"
