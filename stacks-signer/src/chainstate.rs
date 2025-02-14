@@ -250,6 +250,7 @@ impl SortitionsView {
                     );
                     self.cur_sortition.miner_status =
                         SortitionMinerStatus::InvalidatedBeforeFirstBlock;
+                    return Err(RejectCode::ReorgNotAllowed);
                 }
             }
         }
