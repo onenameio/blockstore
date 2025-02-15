@@ -420,25 +420,27 @@ impl Signer {
                 true,
             ) {
                 // Error validating block
-                Err(e) => {
+                Err(RejectCode::ConnectivityIssues(e)) => {
                     warn!(
-                        "{self}: Error checking block proposal: {e:?}";
+                        "{self}: Error checking block proposal: {e}";
                         "signer_sighash" => %signer_signature_hash,
                         "block_id" => %block_id,
                     );
-                    Some(self.create_block_rejection(RejectCode::ConnectivityIssues, block))
+                    Some(self.create_block_rejection(RejectCode::ConnectivityIssues(e), block))
                 }
                 // Block proposal is bad
-                Ok(false) => {
+                Err(reject_code) => {
                     warn!(
                         "{self}: Block proposal invalid";
                         "signer_sighash" => %signer_signature_hash,
                         "block_id" => %block_id,
+                        "reject_reason" => %reject_code,
+                        "reject_code" => ?reject_code,
                     );
-                    Some(self.create_block_rejection(RejectCode::SortitionViewMismatch, block))
+                    Some(self.create_block_rejection(reject_code, block))
                 }
                 // Block proposal passed check, still don't know if valid
-                Ok(true) => None,
+                Ok(_) => None,
             }
         } else {
             warn!(
@@ -663,9 +665,10 @@ impl Signer {
                         "signer_sighash" => %signer_signature_hash,
                         "block_id" => %proposed_block.block_id()
                     );
-                    return Some(
-                        self.create_block_rejection(RejectCode::ConnectivityIssues, proposed_block),
-                    );
+                    return Some(self.create_block_rejection(
+                        RejectCode::ConnectivityIssues("error checking block proposal".to_string()),
+                        proposed_block,
+                    ));
                 }
             }
         }
@@ -696,9 +699,12 @@ impl Signer {
                     "signer_sighash" => %signer_signature_hash,
                     "block_id" => %proposed_block.block_id()
                 );
-                return Some(
-                    self.create_block_rejection(RejectCode::ConnectivityIssues, proposed_block),
-                );
+                return Some(self.create_block_rejection(
+                    RejectCode::ConnectivityIssues(
+                        "failed to check block against signer db".to_string(),
+                    ),
+                    proposed_block,
+                ));
             }
         }
         None
@@ -946,8 +952,12 @@ impl Signer {
             "{self}: Failed to receive block validation response within {} ms. Rejecting block.", self.block_proposal_validation_timeout.as_millis();
             "signer_sighash" => %proposal_signer_sighash,
         );
-        let rejection =
-            self.create_block_rejection(RejectCode::ConnectivityIssues, &block_info.block);
+        let rejection = self.create_block_rejection(
+            RejectCode::ConnectivityIssues(
+                "failed to receive block validation response in time".to_string(),
+            ),
+            &block_info.block,
+        );
         if let Err(e) = block_info.mark_locally_rejected() {
             if !block_info.has_reached_consensus() {
                 warn!("{self}: Failed to mark block as locally rejected: {e:?}");

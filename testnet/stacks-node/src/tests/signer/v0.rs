@@ -7067,7 +7067,7 @@ fn block_validation_response_timeout() {
                 signer_signature_hash, block_signer_signature_hash_1,
                 "Received a rejection for the wrong block"
             );
-            if matches!(reason_code, RejectCode::ConnectivityIssues) {
+            if matches!(reason_code, RejectCode::ConnectivityIssues(_)) {
                 return Ok(true);
             }
         }
