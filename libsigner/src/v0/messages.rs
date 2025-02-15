@@ -539,7 +539,26 @@ RejectCodeTypePrefix {
     /// The block was rejected due to a mismatch with expected sortition view
     SortitionViewMismatch = 4,
     /// The block was rejected due to a testing directive
-    TestingDirective = 5
+    TestingDirective = 5,
+    /// The block attempted to reorg the previous tenure but was not allowed
+    ReorgNotAllowed = 6,
+    /// The bitvec field does not match what is expected
+    InvalidBitvec = 7,
+    /// The miner's pubkey hash does not match the winning pubkey hash
+    PubkeyHashMismatch = 8,
+    /// The miner has been marked as invalid
+    InvalidMiner = 9,
+    /// Miner is last sortition winner, when the current sortition winner is
+    /// still valid
+    NotLatestSortitionWinner = 10,
+    /// The block does not confirm the expected parent block
+    InvalidParentBlock = 11,
+    /// The block contains a block found tenure change, but we've already seen
+    /// a block found
+    DuplicateBlockFound = 12,
+    /// The block attempted a tenure extend but the burn view has not changed
+    /// and not enough time has passed for a time-based tenure extend
+    InvalidTenureExtend = 13
 });
 
 impl TryFrom<u8> for RejectCodeTypePrefix {
@@ -555,11 +574,19 @@ impl From<&RejectCode> for RejectCodeTypePrefix {
     fn from(reject_code: &RejectCode) -> Self {
         match reject_code {
             RejectCode::ValidationFailed(_) => RejectCodeTypePrefix::ValidationFailed,
-            RejectCode::ConnectivityIssues => RejectCodeTypePrefix::ConnectivityIssues,
+            RejectCode::ConnectivityIssues(_) => RejectCodeTypePrefix::ConnectivityIssues,
             RejectCode::RejectedInPriorRound => RejectCodeTypePrefix::RejectedInPriorRound,
             RejectCode::NoSortitionView => RejectCodeTypePrefix::NoSortitionView,
             RejectCode::SortitionViewMismatch => RejectCodeTypePrefix::SortitionViewMismatch,
             RejectCode::TestingDirective => RejectCodeTypePrefix::TestingDirective,
+            RejectCode::ReorgNotAllowed => RejectCodeTypePrefix::ReorgNotAllowed,
+            RejectCode::InvalidBitvec => RejectCodeTypePrefix::InvalidBitvec,
+            RejectCode::PubkeyHashMismatch => RejectCodeTypePrefix::PubkeyHashMismatch,
+            RejectCode::InvalidMiner => RejectCodeTypePrefix::InvalidMiner,
+            RejectCode::NotLatestSortitionWinner => RejectCodeTypePrefix::NotLatestSortitionWinner,
+            RejectCode::InvalidParentBlock => RejectCodeTypePrefix::InvalidParentBlock,
+            RejectCode::DuplicateBlockFound => RejectCodeTypePrefix::DuplicateBlockFound,
+            RejectCode::InvalidTenureExtend => RejectCodeTypePrefix::InvalidTenureExtend,
         }
     }
 }
@@ -572,13 +599,32 @@ pub enum RejectCode {
     /// No Sortition View to verify against
     NoSortitionView,
     /// The block was rejected due to connectivity issues with the signer
-    ConnectivityIssues,
+    ConnectivityIssues(String),
     /// The block was rejected in a prior round
     RejectedInPriorRound,
     /// The block was rejected due to a mismatch with expected sortition view
     SortitionViewMismatch,
     /// The block was rejected due to a testing directive
     TestingDirective,
+    /// The block attempted to reorg the previous tenure but was not allowed
+    ReorgNotAllowed,
+    /// The bitvec field does not match what is expected
+    InvalidBitvec,
+    /// The miner's pubkey hash does not match the winning pubkey hash
+    PubkeyHashMismatch,
+    /// The miner has been marked as invalid
+    InvalidMiner,
+    /// Miner is last sortition winner, when the current sortition winner is
+    /// still valid
+    NotLatestSortitionWinner,
+    /// The block does not confirm the expected parent block
+    InvalidParentBlock,
+    /// The block contains a block found tenure change, but we've already seen
+    /// a block found
+    DuplicateBlockFound,
+    /// The block attempted a tenure extend but the burn view has not changed
+    /// and not enough time has passed for a time-based tenure extend
+    InvalidTenureExtend,
 }
 
 define_u8_enum!(
@@ -796,7 +842,7 @@ impl SignerMessageMetadata {
 }
 
 /// The latest version of the block response data
-pub const BLOCK_RESPONSE_DATA_VERSION: u8 = 2;
+pub const BLOCK_RESPONSE_DATA_VERSION: u8 = 3;
 
 /// Versioned, backwards-compatible struct for block response data
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -1070,11 +1116,19 @@ impl StacksMessageCodec for RejectCode {
         // Do not do a single match here as we may add other variants in the future and don't want to miss adding it
         match self {
             RejectCode::ValidationFailed(code) => write_next(fd, &(*code as u8))?,
-            RejectCode::ConnectivityIssues
+            RejectCode::ConnectivityIssues(_)
             | RejectCode::RejectedInPriorRound
             | RejectCode::NoSortitionView
             | RejectCode::SortitionViewMismatch
-            | RejectCode::TestingDirective => {
+            | RejectCode::TestingDirective
+            | RejectCode::ReorgNotAllowed
+            | RejectCode::InvalidBitvec
+            | RejectCode::PubkeyHashMismatch
+            | RejectCode::InvalidMiner
+            | RejectCode::NotLatestSortitionWinner
+            | RejectCode::InvalidParentBlock
+            | RejectCode::DuplicateBlockFound
+            | RejectCode::InvalidTenureExtend => {
                 // No additional data to serialize / deserialize
             }
         };
@@ -1093,11 +1147,21 @@ impl StacksMessageCodec for RejectCode {
                     ))
                 })?,
             ),
-            RejectCodeTypePrefix::ConnectivityIssues => RejectCode::ConnectivityIssues,
+            RejectCodeTypePrefix::ConnectivityIssues => {
+                RejectCode::ConnectivityIssues("unspecified".to_string())
+            }
             RejectCodeTypePrefix::RejectedInPriorRound => RejectCode::RejectedInPriorRound,
             RejectCodeTypePrefix::NoSortitionView => RejectCode::NoSortitionView,
             RejectCodeTypePrefix::SortitionViewMismatch => RejectCode::SortitionViewMismatch,
             RejectCodeTypePrefix::TestingDirective => RejectCode::TestingDirective,
+            RejectCodeTypePrefix::ReorgNotAllowed => RejectCode::ReorgNotAllowed,
+            RejectCodeTypePrefix::InvalidBitvec => RejectCode::InvalidBitvec,
+            RejectCodeTypePrefix::PubkeyHashMismatch => RejectCode::PubkeyHashMismatch,
+            RejectCodeTypePrefix::InvalidMiner => RejectCode::InvalidMiner,
+            RejectCodeTypePrefix::NotLatestSortitionWinner => RejectCode::NotLatestSortitionWinner,
+            RejectCodeTypePrefix::InvalidParentBlock => RejectCode::InvalidParentBlock,
+            RejectCodeTypePrefix::DuplicateBlockFound => RejectCode::DuplicateBlockFound,
+            RejectCodeTypePrefix::InvalidTenureExtend => RejectCode::InvalidTenureExtend,
         };
         Ok(code)
     }
@@ -1108,9 +1172,9 @@ impl std::fmt::Display for RejectCode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             RejectCode::ValidationFailed(code) => write!(f, "Validation failed: {:?}", code),
-            RejectCode::ConnectivityIssues => write!(
+            RejectCode::ConnectivityIssues(reason) => write!(
                 f,
-                "The block was rejected due to connectivity issues with the signer."
+                "The block was rejected due to connectivity issues with the signer: {reason}"
             ),
             RejectCode::RejectedInPriorRound => write!(
                 f,
@@ -1127,6 +1191,45 @@ impl std::fmt::Display for RejectCode {
             }
             RejectCode::TestingDirective => {
                 write!(f, "The block was rejected due to a testing directive.")
+            }
+            RejectCode::ReorgNotAllowed => {
+                write!(
+                    f,
+                    "The block attempted to reorg the previous tenure(s) but was not allowed."
+                )
+            }
+            RejectCode::InvalidBitvec => {
+                write!(f, "The bitvec field does not match what is expected.")
+            }
+            RejectCode::PubkeyHashMismatch => {
+                write!(
+                    f,
+                    "The miner's pubkey hash does not match the winning pubkey hash."
+                )
+            }
+            RejectCode::InvalidMiner => {
+                write!(f, "The miner has been marked as invalid.")
+            }
+            RejectCode::NotLatestSortitionWinner => {
+                write!(
+                    f,
+                    "Miner is last sortition winner, when the current sortition winner is still valid."
+                )
+            }
+            RejectCode::InvalidParentBlock => {
+                write!(f, "The block does not confirm the expected parent block.")
+            }
+            RejectCode::DuplicateBlockFound => {
+                write!(
+                    f,
+                    "The block contains a block found tenure change, but we've already seen a block found."
+                )
+            }
+            RejectCode::InvalidTenureExtend => {
+                write!(
+                    f,
+                    "The block attempted a tenure extend but the burn view has not changed and not enough time has passed for a time-based tenure extend."
+                )
             }
         }
     }
@@ -1180,7 +1283,7 @@ mod test {
             .expect("Failed to deserialize RejectCode");
         assert_eq!(code, deserialized_code);
 
-        let code = RejectCode::ConnectivityIssues;
+        let code = RejectCode::ConnectivityIssues("".to_string());
         let serialized_code = code.serialize_to_vec();
         let deserialized_code = read_next::<RejectCode, _>(&mut &serialized_code[..])
             .expect("Failed to deserialize RejectCode");
@@ -1203,7 +1306,7 @@ mod test {
 
         let rejection = BlockRejection::new(
             Sha512Trunc256Sum([1u8; 32]),
-            RejectCode::ConnectivityIssues,
+            RejectCode::ConnectivityIssues("reason".to_string()),
             &StacksPrivateKey::random(),
             thread_rng().gen_bool(0.5),
             thread_rng().next_u64(),
