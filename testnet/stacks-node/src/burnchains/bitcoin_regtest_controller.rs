@@ -1689,32 +1689,43 @@ impl BitcoinRegtestController {
         utxos_to_exclude: Option<UTXOSet>,
         block_height: u64,
     ) -> Result<(Transaction, UTXOSet), BurnchainControllerError> {
-        let utxos = if let Some(utxos) = utxos_to_include {
-            // in RBF, you have to consume the same UTXOs
-            utxos
+        // If mock mining is on, don't even check for UTXOs—return a dummy Tx/UTXO set.
+        if self.config.get_node_config(false).mock_mining {
+            let transaction = Transaction {
+                input: vec![],
+                output: vec![],
+                version: 1,
+                lock_time: 0,
+            };
+            let transaction_utxos = UTXOSet {
+                bhh: BurnchainHeaderHash::zero(),
+                utxos: vec![],
+            };
+            return Ok((transaction, transaction_utxos));
+        }
+        
+        // Otherwise, we're not in mock mining; fetch or use existing UTXOs
+        let utxos = if let Some(included) = utxos_to_include {
+            // For RBF or re-sending, we might force using the same UTXOs
+            included
         } else {
-            // Fetch some UTXOs
+            // Otherwise, fetch UTXOs from our Bitcoin RPC
             let addr = self.get_miner_address(epoch_id, public_key);
-            match self.get_utxos(
-                epoch_id,
-                public_key,
-                total_required,
-                utxos_to_exclude,
-                block_height,
-            ) {
+            match self.get_utxos(epoch_id, public_key, total_required, utxos_to_exclude, block_height) {
                 Some(utxos) => utxos,
                 None => {
                     warn!(
-                        "No UTXOs for {} ({}) in epoch {epoch_id}",
+                        "No UTXOs for {} ({}) in epoch {}",
                         &public_key.to_hex(),
-                        &addr2str(&addr)
+                        &addr2str(&addr),
+                        epoch_id
                     );
                     return Err(BurnchainControllerError::NoUTXOs);
                 }
             }
         };
 
-        // Prepare a backbone for the tx
+        // Build your real transaction here
         let transaction = Transaction {
             input: vec![],
             output: vec![],
@@ -1722,6 +1733,7 @@ impl BitcoinRegtestController {
             lock_time: 0,
         };
 
+        // Finally return the transaction and the chosen UTXOs
         Ok((transaction, utxos))
     }
 

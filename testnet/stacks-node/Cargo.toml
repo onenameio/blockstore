@@ -53,6 +53,10 @@ tempfile = "3.3"
 mockito = "1.5"
 serial_test = "3.2.0"
 
+[node]
+miner = true
+mock_mining = true
+
 [[bin]]
 name = "stacks-node"
 path = "src/main.rs"
