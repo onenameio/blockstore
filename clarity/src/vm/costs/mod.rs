@@ -38,7 +38,7 @@ use crate::vm::types::Value::UInt;
 use crate::vm::types::{
     FunctionType, PrincipalData, QualifiedContractIdentifier, TupleData, TypeSignature,
 };
-use crate::vm::{eval_all, ClarityName, SymbolicExpression, Value};
+use crate::vm::{CallStack, ClarityName, Environment, LocalContext, SymbolicExpression, Value};
 
 pub mod constants;
 pub mod cost_functions;
@@ -1055,7 +1055,7 @@ pub fn parse_cost(
 // TODO: add tests from mutation testing results #4832
 #[cfg_attr(test, mutants::skip)]
 fn compute_cost(
-    cost_tracker: &mut TrackerData,
+    cost_tracker: &TrackerData,
     cost_function_reference: ClarityCostFunctionReference,
     input_sizes: &[u64],
     eval_in_epoch: StacksEpochId,
@@ -1074,7 +1074,7 @@ fn compute_cost(
 
     let cost_contract = cost_tracker
         .cost_contracts
-        .get_mut(&cost_function_reference.contract_id)
+        .get(&cost_function_reference.contract_id)
         .ok_or(CostErrors::CostComputationFailed(format!(
             "CostFunction not found: {cost_function_reference}"
         )))?;
@@ -1089,14 +1089,23 @@ fn compute_cost(
         )));
     }
 
-    let function_invocation = [SymbolicExpression::list(program)];
+    let function_invocation = SymbolicExpression::list(program);
+    let eval_result = global_context.execute(|global_context| {
+        let context = LocalContext::new();
+        let mut call_stack = CallStack::new();
+        let publisher: PrincipalData = cost_contract.contract_identifier.issuer.clone().into();
+        let mut env = Environment::new(
+            global_context,
+            cost_contract,
+            &mut call_stack,
+            Some(publisher.clone()),
+            Some(publisher.clone()),
+            None,
+        );
 
-    let eval_result = eval_all(
-        &function_invocation,
-        cost_contract,
-        &mut global_context,
-        None,
-    );
+        let result = super::eval(&function_invocation, &mut env, &context)?;
+        Ok(Some(result))
+    });
 
     parse_cost(&cost_function_reference.to_string(), eval_result)
 }
