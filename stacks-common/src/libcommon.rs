@@ -31,6 +31,7 @@ pub mod address;
 
 pub mod deps_common;
 
+#[cfg(not(feature = "wasm"))]
 pub mod bitvec;
 
 pub mod consts {

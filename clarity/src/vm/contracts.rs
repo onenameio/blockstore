@@ -16,7 +16,10 @@
 
 use stacks_common::types::StacksEpochId;
 
+use super::analysis::ContractAnalysis;
 use crate::vm::ast::ContractAST;
+#[cfg(feature = "clarity-wasm")]
+use crate::vm::clarity_wasm::initialize_contract;
 use crate::vm::contexts::{ContractContext, GlobalContext};
 use crate::vm::errors::InterpreterResult as Result;
 use crate::vm::eval_all;
@@ -33,13 +36,38 @@ pub struct Contract {
 impl Contract {
     pub fn initialize_from_ast(
         contract_identifier: QualifiedContractIdentifier,
-        contract: &ContractAST,
+        contract: &mut ContractAST,
+        contract_analysis: &ContractAnalysis,
         sponsor: Option<PrincipalData>,
         global_context: &mut GlobalContext,
         version: ClarityVersion,
     ) -> Result<Contract> {
         let mut contract_context = ContractContext::new(contract_identifier, version);
 
+        #[cfg(feature = "clarity-wasm")]
+        if let Some(wasm_module) = contract.wasm_module.take() {
+            contract_context.set_wasm_module(wasm_module);
+
+            // Initialize the contract via the compiled Wasm module
+            global_context.execute(|global_context| {
+                initialize_contract(
+                    global_context,
+                    &mut contract_context,
+                    sponsor,
+                    contract_analysis,
+                )
+            })?;
+        } else {
+            // Interpret the contract
+            eval_all(
+                &contract.expressions,
+                &mut contract_context,
+                global_context,
+                sponsor,
+            )?;
+        }
+
+        #[cfg(not(feature = "clarity-wasm"))]
         eval_all(
             &contract.expressions,
             &mut contract_context,

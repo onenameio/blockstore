@@ -84,11 +84,44 @@ impl TypeMap {
         }
     }
 
+    /// Like set_type but forcing a change if already set
+    pub fn overwrite_type(&mut self, expr: &SymbolicExpression, type_sig: TypeSignature) {
+        if let TypeMapDataType::Map(ref mut map) = self.map {
+            map.insert(expr.id, type_sig);
+        }
+    }
+
+    pub fn get_type(&self, expr: &SymbolicExpression) -> Option<&TypeSignature> {
+        match self.map {
+            TypeMapDataType::Map(ref map) => map.get(&expr.id),
+            _ => None,
+        }
+    }
+
     pub fn get_type_expected(&self, expr: &SymbolicExpression) -> Option<&TypeSignature> {
         match self.map {
             TypeMapDataType::Map(ref map) => map.get(&expr.id),
             TypeMapDataType::Set(_) => None,
         }
+    }
+
+    /// Concretize tries to [concretize] all the types in the TypeMap.
+    ///
+    /// This is needed for Clarity-Wasm where all types should have a defined representation
+    /// in memory. Since [ListUnionType] doesn't have one, we need to concretize it.
+    ///
+    /// [concretize]: TypeSignature::concretize
+    /// [ListUnionType]: TypeSignature::ListUnionType
+    pub fn concretize(&mut self) -> CheckResult<()> {
+        match self.map {
+            TypeMapDataType::Map(ref mut map) => {
+                for ty in map.values_mut() {
+                    *ty = ty.clone().concretize_deep()?;
+                }
+            }
+            TypeMapDataType::Set(_) => {}
+        };
+        Ok(())
     }
 }
 
