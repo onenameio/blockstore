@@ -53,6 +53,12 @@ impl<T: Default + Clone> Default for TestFlag<T> {
     }
 }
 
+impl<T> TestFlag<T> {
+    pub fn new(initial_value: T) -> Self {
+        Self(Arc::new(Mutex::new(Some(initial_value))))
+    }
+}
+
 impl<T: Default + Clone> TestFlag<T> {
     /// Sets the value of the test flag.
     ///
