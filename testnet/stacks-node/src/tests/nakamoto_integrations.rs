@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::fs::File;
 use std::ops::RangeBounds;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::{channel, Receiver, Sender};
@@ -10688,7 +10689,7 @@ fn test_tenure_extend_from_flashblocks() {
 (define-data-var my-var uint u0)
 (define-data-var my-counter uint u0)
 
-(define-public (f) 
+(define-public (f)
    (begin
       (var-set my-var burn-block-height)
       (if (is-eq u0 (mod burn-block-height u2))
@@ -11080,6 +11081,148 @@ fn mine_invalid_principal_from_consensus_buff() {
     assert_eq!(dropped_txs.len(), 1);
     assert_eq!(dropped_txs[0].0, format!("0x{}", &contract_tx.txid()));
     assert_eq!(dropped_txs[0].1.as_str(), "Problematic");
+
+    coord_channel
+        .lock()
+        .expect("Mutex poisoned")
+        .stop_chains_coordinator();
+    run_loop_stopper.store(false, Ordering::SeqCst);
+
+    run_loop_thread.join().unwrap();
+}
+
+/// Test hot-reloading of miner config
+#[test]
+#[ignore]
+fn reload_miner_config() {
+    if env::var("BITCOIND_TEST") != Ok("1".into()) {
+        return;
+    }
+
+    let (mut conf, _miner_account) = naka_neon_integration_conf(None);
+    let password = "12345".to_string();
+    let _http_origin = format!("http://{}", &conf.node.rpc_bind);
+    conf.connection_options.auth_token = Some(password.clone());
+    conf.miner.wait_on_interim_blocks = Duration::from_secs(1);
+    let stacker_sk = setup_stacker(&mut conf);
+    let signer_sk = Secp256k1PrivateKey::random();
+    let signer_addr = tests::to_addr(&signer_sk);
+    let sender_sk = Secp256k1PrivateKey::random();
+    // setup sender + recipient for some test stx transfers
+    // these are necessary for the interim blocks to get mined at all
+    let sender_addr = tests::to_addr(&sender_sk);
+    conf.add_initial_balance(PrincipalData::from(sender_addr).to_string(), 1000000);
+    conf.add_initial_balance(PrincipalData::from(signer_addr).to_string(), 100000);
+
+    test_observer::spawn();
+    test_observer::register(&mut conf, &[EventKeyType::AnyEvent]);
+
+    let mut btcd_controller = BitcoinCoreController::new(conf.clone());
+    btcd_controller
+        .start_bitcoind()
+        .expect("Failed starting bitcoind");
+    let mut btc_regtest_controller = BitcoinRegtestController::new(conf.clone(), None);
+    btc_regtest_controller.bootstrap_chain(201);
+
+    let conf_path =
+        std::env::temp_dir().join(format!("miner-config-test-{}.toml", rand::random::<u64>()));
+    conf.config_path = Some(conf_path.clone().to_str().unwrap().to_string());
+
+    // Make a minimum-viable config file
+    let update_config = |burn_fee_cap: u64, sats_vbyte: u64| {
+        use std::io::Write;
+
+        let new_config = format!(
+            r#"
+            [burnchain]
+            burn_fee_cap = {}
+            satoshis_per_byte = {}
+            "#,
+            burn_fee_cap, sats_vbyte,
+        );
+        // Write to a file
+        let mut file = File::create(&conf_path).unwrap();
+        file.write_all(new_config.as_bytes()).unwrap();
+    };
+
+    update_config(100000, 50);
+
+    let mut run_loop = boot_nakamoto::BootRunLoop::new(conf.clone()).unwrap();
+    let run_loop_stopper = run_loop.get_termination_switch();
+    let counters = run_loop.counters();
+    let Counters {
+        blocks_processed,
+        naka_submitted_commits: commits_submitted,
+        ..
+    } = run_loop.counters();
+
+    let coord_channel = run_loop.coordinator_channels();
+
+    let run_loop_thread = thread::spawn(move || run_loop.start(None, 0));
+    let mut signers = TestSigners::new(vec![signer_sk]);
+    wait_for_runloop(&blocks_processed);
+    boot_to_epoch_3(
+        &conf,
+        &blocks_processed,
+        &[stacker_sk],
+        &[signer_sk],
+        &mut Some(&mut signers),
+        &mut btc_regtest_controller,
+    );
+
+    info!("------------------------- Reached Epoch 3.0 -------------------------");
+
+    blind_signer(&conf, &signers, &counters);
+
+    wait_for_first_naka_block_commit(60, &commits_submitted);
+
+    next_block_and_mine_commit(&mut btc_regtest_controller, 60, &conf, &counters).unwrap();
+
+    let burn_blocks = test_observer::get_burn_blocks();
+    let burn_block = burn_blocks.last().unwrap();
+    info!("Burn block: {:?}", &burn_block);
+
+    let reward_amount = burn_block
+        .get("reward_recipients")
+        .unwrap()
+        .as_array()
+        .unwrap()
+        .get(0)
+        .unwrap()
+        .get("amt")
+        .unwrap()
+        .as_u64()
+        .unwrap();
+
+    assert_eq!(reward_amount, 200000);
+
+    next_block_and_mine_commit(&mut btc_regtest_controller, 60, &conf, &counters).unwrap();
+
+    info!("---- Updating config ----");
+    update_config(100010, 55);
+
+    // Due to timing of commits, just mine two blocks
+
+    next_block_and_mine_commit(&mut btc_regtest_controller, 60, &conf, &counters).unwrap();
+    next_block_and_mine_commit(&mut btc_regtest_controller, 60, &conf, &counters).unwrap();
+
+    let burn_blocks = test_observer::get_burn_blocks();
+    let burn_block = burn_blocks.last().unwrap();
+    info!("Burn block: {:?}", &burn_block);
+
+    let reward_amount = burn_block
+        .get("reward_recipients")
+        .unwrap()
+        .as_array()
+        .unwrap()
+        .get(0)
+        .unwrap()
+        .get("amt")
+        .unwrap()
+        .as_u64()
+        .unwrap();
+
+    assert_eq!(reward_amount, 100010);
 
     coord_channel
         .lock()

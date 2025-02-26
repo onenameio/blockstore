@@ -11,6 +11,7 @@ and this project adheres to the versioning scheme outlined in the [README.md](RE
 
 - The `BlockProposal` StackerDB message serialization struct now includes a `server_version` string, which represents the version of the node that the miner is using. ([#5803](https://github.com/stacks-network/stacks-core/pull/5803))
 - Add `vrf_seed` to the `/v3/sortitions` rpc endpoint
+- Added hot-reloading of `burnchain.burn_fee_cap` from a miner's config file ([#5857](https://github.com/stacks-network/stacks-core/pull/5857))
 
 ### Changed
 

@@ -39,7 +39,7 @@ use stacks::chainstate::nakamoto::{NakamotoBlockHeader, NakamotoChainState};
 use stacks::chainstate::stacks::address::PoxAddress;
 use stacks::chainstate::stacks::db::StacksChainState;
 use stacks::chainstate::stacks::miner::{
-    get_mining_spend_amount, signal_mining_blocked, signal_mining_ready,
+    set_mining_spend_amount, signal_mining_blocked, signal_mining_ready,
 };
 use stacks::chainstate::stacks::Error as ChainstateError;
 use stacks::core::mempool::MemPoolDB;
@@ -1101,8 +1101,29 @@ impl RelayerThread {
             return Err(NakamotoNodeError::SnapshotNotFoundForChainTip);
         };
 
+        let burnchain_config = self.config.get_burnchain_config();
+        let last_miner_spend_opt = self.globals.get_last_miner_spend_amount();
+        let force_remine = if let Some(last_miner_spend_amount) = last_miner_spend_opt {
+            last_miner_spend_amount != burnchain_config.burn_fee_cap
+        } else {
+            false
+        };
+        if force_remine {
+            info!(
+                "Miner config changed; updating spend amount {}",
+                burnchain_config.burn_fee_cap
+            );
+        }
+
+        self.globals
+            .set_last_miner_spend_amount(burnchain_config.burn_fee_cap);
+
+        set_mining_spend_amount(
+            self.globals.get_miner_status(),
+            burnchain_config.burn_fee_cap,
+        );
         // amount of burnchain tokens (e.g. sats) we'll spend across the PoX outputs
-        let burn_fee_cap = get_mining_spend_amount(self.globals.get_miner_status());
+        let burn_fee_cap = burnchain_config.burn_fee_cap;
 
         // let's commit, but target the current burnchain tip with our modulus so the commit is
         // only valid if it lands in the targeted burnchain block height
