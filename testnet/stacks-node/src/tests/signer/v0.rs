@@ -11904,3 +11904,193 @@ fn mark_miner_as_invalid_if_reorg_is_rejected() {
     }
     miners.shutdown();
 }
+
+#[test]
+#[ignore]
+/// This test checks the behavior of `burn-block-height` within a normal
+/// Nakamoto block and within a tenure-extend block.
+fn burn_block_height_behavior() {
+    if env::var("BITCOIND_TEST") != Ok("1".into()) {
+        return;
+    }
+
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(EnvFilter::from_default_env())
+        .init();
+
+    info!("------------------------- Test Setup -------------------------");
+    let num_signers = 5;
+    let sender_sk = Secp256k1PrivateKey::random();
+    let sender_addr = tests::to_addr(&sender_sk);
+    let send_amt = 100;
+    let send_fee = 180;
+    let deployer_sk = Secp256k1PrivateKey::random();
+    let deployer_addr = tests::to_addr(&deployer_sk);
+    let tx_fee = 10000;
+    let deploy_fee = 200000;
+    let block_proposal_timeout = Duration::from_secs(20);
+    let mut signer_test: SignerTest<SpawnedSigner> = SignerTest::new_with_config_modifications(
+        num_signers,
+        vec![
+            (sender_addr, send_amt + send_fee),
+            (deployer_addr, deploy_fee + tx_fee * 3),
+        ],
+        |config| {
+            // make the duration long enough that the miner will be marked as malicious
+            config.block_proposal_timeout = block_proposal_timeout;
+        },
+        |_| {},
+        None,
+        None,
+    );
+    let http_origin = format!("http://{}", &signer_test.running_nodes.conf.node.rpc_bind);
+
+    signer_test.boot_to_epoch_3();
+
+    let Counters {
+        naka_skip_commit_op: skip_commit_op,
+        ..
+    } = signer_test.running_nodes.counters.clone();
+
+    info!("------------------------- Test Mine Regular Tenure A  -------------------------");
+
+    let contract_src = "(define-public (foo) (ok burn-block-height))";
+
+    // First, lets deploy the contract
+    let mut deployer_nonce = 0;
+    let contract_tx = make_contract_publish(
+        &deployer_sk,
+        deployer_nonce,
+        deploy_fee,
+        signer_test.running_nodes.conf.burnchain.chain_id,
+        "foo",
+        &contract_src,
+    );
+    submit_tx(&http_origin, &contract_tx);
+    deployer_nonce += 1;
+
+    let info = get_chain_info(&signer_test.running_nodes.conf);
+    let burn_height_before = info.burn_block_height;
+
+    // Stall block commits, so the next block will have no sortition
+    skip_commit_op.set(true);
+
+    // Mine a regular tenure
+    next_block_and_process_new_stacks_block(
+        &mut signer_test.running_nodes.btc_regtest_controller,
+        60,
+        &signer_test.running_nodes.coord_channel,
+    )
+    .expect("Failed to mine a block");
+
+    let info = get_chain_info(&signer_test.running_nodes.conf);
+    let burn_height_after = info.burn_block_height;
+
+    assert_eq!(burn_height_after, burn_height_before + 1);
+
+    // Wait for the deploy tx to be mined in a new Nakamoto block
+    wait_for(60, || {
+        Ok(get_account(&http_origin, &deployer_addr).nonce == deployer_nonce)
+    })
+    .expect("Timed out waiting for call tx to be mined");
+
+    info!("------------------------- submit contract call 1 -------------------------");
+    let call_tx = make_contract_call(
+        &deployer_sk,
+        deployer_nonce,
+        tx_fee,
+        signer_test.running_nodes.conf.burnchain.chain_id,
+        &deployer_addr,
+        "foo",
+        "foo",
+        &[],
+    );
+    let txid = submit_tx(&http_origin, &call_tx);
+    deployer_nonce += 1;
+
+    // Wait for the call tx to be mined in a new Nakamoto block
+    wait_for(60, || {
+        Ok(get_account(&http_origin, &deployer_addr).nonce == deployer_nonce)
+    })
+    .expect("Timed out waiting for call tx to be mined");
+
+    let blocks = test_observer::get_mined_nakamoto_blocks();
+    let last_block = blocks.last().unwrap();
+    let txs = &last_block.tx_events;
+    for tx in txs {
+        match tx {
+            TransactionEvent::Success(tx) => {
+                if tx.txid.to_string() == txid {
+                    let result_height = tx
+                        .result
+                        .clone()
+                        .expect_result_ok()
+                        .unwrap()
+                        .expect_u128()
+                        .unwrap();
+                    assert_eq!(result_height, burn_height_after as u128);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Stall mining, so that the next call will get included in the tenure extend block
+    TEST_MINE_STALL.set(true);
+
+    info!("------------------------- submit contract call 2 -------------------------");
+    let call_tx = make_contract_call(
+        &deployer_sk,
+        deployer_nonce,
+        tx_fee,
+        signer_test.running_nodes.conf.burnchain.chain_id,
+        &deployer_addr,
+        "foo",
+        "foo",
+        &[],
+    );
+    let txid = submit_tx(&http_origin, &call_tx);
+
+    info!(
+        "------------------------- mine bitcoin block with no sortition -------------------------"
+    );
+    // Mine an bitcoin block with no sortition to trigger a tenure extend
+    signer_test
+        .running_nodes
+        .btc_regtest_controller
+        .build_next_block(1);
+
+    info!("------------------------- wait for tenure change block -------------------------");
+
+    // Resume mining and wait for the next block to be mined
+    TEST_MINE_STALL.set(false);
+    wait_for_tenure_change_tx(30, TenureChangeCause::Extended, burn_height_after + 1)
+        .expect("Timed out waiting for tenure extend");
+
+    let blocks = test_observer::get_mined_nakamoto_blocks();
+    let last_block = blocks.last().unwrap();
+    let txs = &last_block.tx_events;
+    assert_eq!(txs.len(), 2, "Expected 2 txs in the tenure extend block");
+    let _tenure_extend_tx = txs.first().unwrap();
+    let call_tx = txs.last().unwrap();
+    match call_tx {
+        TransactionEvent::Success(tx) => {
+            if tx.txid.to_string() == txid {
+                let result_height = tx
+                    .result
+                    .clone()
+                    .expect_result_ok()
+                    .unwrap()
+                    .expect_u128()
+                    .unwrap();
+                assert_eq!(result_height, burn_height_after as u128 + 1);
+            }
+        }
+        _ => {}
+    }
+
+    info!("------------------------- shutdown -------------------------");
+
+    signer_test.shutdown();
+}
