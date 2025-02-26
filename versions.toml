@@ -1,4 +1,4 @@
 # Update these values when a new release is created.
 # `stacks-common/build.rs` will automatically update `versions.rs` with these values.
-stacks_node_version = "3.1.0.0.5"
-stacks_signer_version = "3.1.0.0.5.0"
+stacks_node_version = "3.1.0.0.6"
+stacks_signer_version = "3.1.0.0.6.0"

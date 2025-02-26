@@ -7,6 +7,17 @@ and this project adheres to the versioning scheme outlined in the [README.md](RE
 
 ## [Unreleased]
 
+## Changed
+
+- Add new reject codes to the signer response for better visibility into why a block was rejected.
+- When allowing a reorg within the `reorg_attempts_activity_timeout_ms`, the signer will now watch the responses from other signers and if >30% of them reject this reorg attempt, then the signer will mark the miner as invalid, reject further attempts to reorg and allow the previous miner to extend their tenure.
+
+### Fixed
+
+- The signer runloop no longer relies on pubkey reports from the SignerDB event system. This previously led to improper proposal rejections via #5858.
+
+## [3.1.0.0.6.0]
+
 ## Added
 
 - Introduced the `reorg_attempts_activity_timeout_ms` configuration option for signers which is used to determine the length of time after the last block of a tenure is confirmed that an incoming miner's attempts to reorg it are considered valid miner activity.
@@ -17,12 +28,6 @@ and this project adheres to the versioning scheme outlined in the [README.md](RE
 - Increase default `block_proposal_timeout_ms` from 10 minutes to 4 hours. Until #5729 is implemented, there is no value in rejecting a late block from a miner, since a late block is better than no block at all.
 - Signers no longer view any block proposal by a miner in their DB as indicative of valid miner activity.
 - Various index improvements to the signer's database to improve performance.
-- Add new reject codes to the signer response for better visibility into why a block was rejected.
-- When allowing a reorg within the `reorg_attempts_activity_timeout_ms`, the signer will now watch the responses from other signers and if >30% of them reject this reorg attempt, then the signer will mark the miner as invalid, reject further attempts to reorg and allow the previous miner to extend their tenure.
-
-### Fixed
-
-- The signer runloop no longer relies on pubkey reports from the SignerDB event system. This previously led to improper proposal rejections via #5858. 
 
 ## [3.1.0.0.5.0]
 
