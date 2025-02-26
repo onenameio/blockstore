@@ -4,14 +4,19 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "executable 'blockstack-core'",
+      "name": "executable 'stacks-node'",
       "cargo": {
-        "args": ["build", "--bin=stacks-node"],
+        "args": [
+          "build",
+          "--bin=stacks-node"
+        ],
         "filter": {
           "kind": "bin"
         }
       },
-      "args": ["mockamoto"],
+      "args": [
+        "mockamoto"
+      ],
       "cwd": "${workspaceFolder}"
     },
     {
@@ -19,7 +24,11 @@
       "request": "launch",
       "name": "executable 'clarity-cli'",
       "cargo": {
-        "args": ["build", "--bin=clarity-cli", "--package=blockstack-core"],
+        "args": [
+          "build",
+          "--bin=clarity-cli",
+          "--package=stackslib"
+        ],
         "filter": {
           "name": "clarity-cli",
           "kind": "bin"
@@ -33,13 +42,19 @@
       "request": "launch",
       "name": "executable 'blockstack-cli'",
       "cargo": {
-        "args": ["build", "--bin=blockstack-cli", "--package=blockstack-core"],
+        "args": [
+          "build",
+          "--bin=blockstack-cli",
+          "--package=stackslib"
+        ],
         "filter": {
           "name": "blockstack-cli",
           "kind": "bin"
         }
       },
-      "args": ["generate-sk"],
+      "args": [
+        "generate-sk"
+      ],
       "cwd": "${workspaceFolder}"
     },
     {
@@ -47,23 +62,34 @@
       "request": "launch",
       "name": "executable 'stacks-node' -- mocknet",
       "cargo": {
-        "args": ["build", "--bin=stacks-node", "--package=stacks-node"],
+        "args": [
+          "build",
+          "--bin=stacks-node",
+          "--package=stacks-node"
+        ],
         "filter": {
           "name": "stacks-node",
           "kind": "bin"
         }
       },
-      "args": ["mocknet"],
+      "args": [
+        "mocknet"
+      ],
       "cwd": "${workspaceFolder}"
     },
     {
       "type": "lldb",
       "request": "launch",
-      "name": "unit tests in library 'blockstack_lib'",
+      "name": "unit tests in library 'stackslib'",
       "cargo": {
-        "args": ["test", "--no-run", "--lib", "--package=blockstack-core"],
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=stackslib"
+        ],
         "filter": {
-          "name": "blockstack_lib",
+          "name": "stackslib",
           "kind": "lib"
         }
       },
@@ -73,13 +99,13 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "unit tests in executable 'blockstack-core'",
+      "name": "unit tests in executable 'stacks-inspect'",
       "cargo": {
         "args": [
           "test",
           "--no-run",
           "--bin=stacks-inspect",
-          "--package=blockstack-core"
+          "--package=stackslib"
         ],
         "filter": {
           "name": "stacks-inspect",
@@ -98,7 +124,7 @@
           "test",
           "--no-run",
           "--bin=clarity-cli",
-          "--package=blockstack-core"
+          "--package=stackslib"
         ],
         "filter": {
           "name": "clarity-cli",
@@ -117,7 +143,7 @@
           "test",
           "--no-run",
           "--bin=blockstack-cli",
-          "--package=blockstack-core"
+          "--package=stackslib"
         ],
         "filter": {
           "name": "blockstack-cli",
@@ -141,63 +167,6 @@
         "filter": {
           "name": "stacks-node",
           "kind": "bin"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "benchmark 'marf_bench'",
-      "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bench=marf_bench",
-          "--package=blockstack-core"
-        ],
-        "filter": {
-          "name": "marf_bench",
-          "kind": "bench"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "benchmark 'large_contract_bench'",
-      "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bench=large_contract_bench",
-          "--package=blockstack-core"
-        ],
-        "filter": {
-          "name": "large_contract_bench",
-          "kind": "bench"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "benchmark 'block_limits'",
-      "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--bench=block_limits",
-          "--package=blockstack-core"
-        ],
-        "filter": {
-          "name": "block_limits",
-          "kind": "bench"
         }
       },
       "args": [],
